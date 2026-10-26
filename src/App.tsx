@@ -4,6 +4,8 @@ import { BranchProvider, useBranch } from './branch/BranchContext'
 import { Layout } from './components/Layout'
 import { LoadingScreen, MessageScreen } from './components/Screen'
 import { BranchSelect } from './pages/BranchSelect'
+import { Billing } from './pages/Billing'
+import { Customers } from './pages/Customers'
 import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
@@ -91,8 +93,8 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="medicines" element={<Medicines />} />
           <Route path="purchases" element={<Purchases />} />
-          <Route path="billing" element={<Placeholder title="Billing" />} />
-          <Route path="customers" element={<Placeholder title="Customers" />} />
+          <Route path="billing" element={<Billing />} />
+          <Route path="customers" element={<Customers />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
