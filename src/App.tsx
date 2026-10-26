@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
 import { Placeholder } from './pages/Placeholder'
+import { Purchases } from './pages/Purchases'
 
 // Needs a session and a readable profile.
 function RequireAuth() {
@@ -89,7 +90,7 @@ export default function App() {
         <Route element={<RequireBranch />}>
           <Route index element={<Dashboard />} />
           <Route path="medicines" element={<Medicines />} />
-          <Route path="purchases" element={<Placeholder title="Purchases" />} />
+          <Route path="purchases" element={<Purchases />} />
           <Route path="billing" element={<Placeholder title="Billing" />} />
           <Route path="customers" element={<Placeholder title="Customers" />} />
         </Route>
