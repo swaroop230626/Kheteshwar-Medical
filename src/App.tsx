@@ -6,6 +6,7 @@ import { LoadingScreen, MessageScreen } from './components/Screen'
 import { BranchSelect } from './pages/BranchSelect'
 import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
+import { Medicines } from './pages/Medicines'
 import { Placeholder } from './pages/Placeholder'
 
 // Needs a session and a readable profile.
@@ -87,7 +88,7 @@ export default function App() {
         <Route path="/select-branch" element={<BranchSelect />} />
         <Route element={<RequireBranch />}>
           <Route index element={<Dashboard />} />
-          <Route path="medicines" element={<Placeholder title="Medicines" />} />
+          <Route path="medicines" element={<Medicines />} />
           <Route path="purchases" element={<Placeholder title="Purchases" />} />
           <Route path="billing" element={<Placeholder title="Billing" />} />
           <Route path="customers" element={<Placeholder title="Customers" />} />
