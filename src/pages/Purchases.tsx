@@ -29,6 +29,7 @@ function PurchasesInner({ branchId, branchName }: { branchId: string; branchName
         branchId={branchId}
         medicines={medicines}
         onCancel={() => setView('list')}
+        onRefreshMedicines={reload}
         onSaved={(message) => {
           setNotice(message)
           setView('list')

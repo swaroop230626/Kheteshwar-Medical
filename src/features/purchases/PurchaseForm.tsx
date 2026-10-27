@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { batchKey, findExistingBatches, saveGrn, type MedicineOption } from './api'
 import {
   GST_OPTIONS,
@@ -39,9 +40,10 @@ interface Props {
   medicines: MedicineOption[]
   onCancel: () => void
   onSaved: (message: string) => void
+  onRefreshMedicines: () => void
 }
 
-export function PurchaseForm({ branchId, medicines, onCancel, onSaved }: Props) {
+export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefreshMedicines }: Props) {
   const [draft, setDraft] = useState<FormDraft>(() => ({
     supplier: '',
     invoiceNo: '',
@@ -160,6 +162,17 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved }: Props) 
             onChange={(e) => setDraft({ ...draft, invoiceDate: e.target.value })} />
         </Field>
       </section>
+
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        દવા યાદીમાં નથી?{' '}
+        <Link to="/medicines?new=1" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold text-brand underline dark:text-brand-bright">
+          નવી દવા ઉમેરો ↗
+        </Link>{' '}
+        (નવા tab માં ખુલશે, આ ફોર્મનો ડેટા સચવાશે.) ઉમેર્યા પછી{' '}
+        <button type="button" className="btn-ghost inline-flex" onClick={onRefreshMedicines} disabled={saving}>
+          દવા યાદી તાજી કરો
+        </button>
+      </p>
 
       <section className="space-y-3" aria-label="Items">
         {draft.items.map((item, idx) => {

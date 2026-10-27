@@ -13,6 +13,7 @@ export interface StockRow {
   dbStock: number // stock_batches.qty_on_hand, shown only as a cross-check
   mrp: number
   reorderLevel: number
+  hasBatch: boolean // false = medicine exists but has no batch in this branch
   statuses: StatusKey[] // first item is the main status
 }
 
@@ -83,7 +84,7 @@ export function statusesFor(
 }
 
 export async function fetchStockRows(branchId: string): Promise<StockRow[]> {
-  const [batches, medicines, grnItems, billItems] = await Promise.all([
+  const [batches, medicines, grnItems, billItems, returnItems] = await Promise.all([
     fetchAll((a, b) =>
       supabase
         .from('stock_batches')
@@ -93,7 +94,7 @@ export async function fetchStockRows(branchId: string): Promise<StockRow[]> {
         .range(a, b),
     ),
     fetchAll((a, b) =>
-      supabase.from('medicines').select('id, name, reorder_level').is('deleted_at', null).order('id').range(a, b),
+      supabase.from('medicines').select('id, name, reorder_level, mrp').is('deleted_at', null).order('id').range(a, b),
     ),
     fetchAll((a, b) =>
       supabase.from('grn_items').select('batch_id, qty').eq('branch_id', branchId).order('id').range(a, b),
@@ -108,17 +109,22 @@ export async function fetchStockRows(branchId: string): Promise<StockRow[]> {
         .order('id')
         .range(a, b),
     ),
+    // returned items go back into the batch they were sold from
+    fetchAll((a, b) =>
+      supabase.from('sales_return_items').select('batch_id, qty').eq('branch_id', branchId).order('id').range(a, b),
+    ),
   ])
 
   const received = sumByBatch(grnItems)
   const sold = sumByBatch(billItems)
+  const returned = sumByBatch(returnItems)
 
-  const meds = new Map<string, { name: string; reorderLevel: number }>()
+  const meds = new Map<string, { name: string; reorderLevel: number; mrp: number }>()
   for (const m of medicines) {
     if (!isRecord(m)) continue
     const reorder = toNum(m.reorder_level)
     if (typeof m.id === 'string' && typeof m.name === 'string') {
-      meds.set(m.id, { name: m.name, reorderLevel: reorder ?? 0 })
+      meds.set(m.id, { name: m.name, reorderLevel: reorder ?? 0, mrp: toNum(m.mrp) ?? 0 })
     }
   }
 
@@ -143,7 +149,7 @@ export async function fetchStockRows(branchId: string): Promise<StockRow[]> {
     const daysLeft = daysUntil(expiry_date, today)
     if (!med || daysLeft === null) continue
 
-    const stock = (received.get(id) ?? 0) - (sold.get(id) ?? 0)
+    const stock = (received.get(id) ?? 0) - (sold.get(id) ?? 0) + (returned.get(id) ?? 0)
     if (daysLeft >= 0 && stock > 0) sellable.set(medicine_id, (sellable.get(medicine_id) ?? 0) + stock)
 
     drafts.push({
@@ -157,6 +163,26 @@ export async function fetchStockRows(branchId: string): Promise<StockRow[]> {
       dbStock: toNum(b.qty_on_hand) ?? 0,
       mrp: toNum(b.mrp) ?? 0,
       reorderLevel: med.reorderLevel,
+      hasBatch: true,
+    })
+  }
+
+  // Medicines with no batch in this branch (e.g. just added) still appear in the list
+  const withBatch = new Set(drafts.map((d) => d.medicineId))
+  for (const [medicineId, med] of meds) {
+    if (withBatch.has(medicineId)) continue
+    drafts.push({
+      batchId: `nobatch-${medicineId}`,
+      medicineId,
+      name: med.name,
+      batchNo: '',
+      expiryDate: '',
+      daysLeft: 0,
+      stock: 0,
+      dbStock: 0,
+      mrp: med.mrp,
+      reorderLevel: med.reorderLevel,
+      hasBatch: false,
     })
   }
 

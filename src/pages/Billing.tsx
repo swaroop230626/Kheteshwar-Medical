@@ -22,6 +22,7 @@ import { CustomerPicker } from '../features/billing/CustomerPicker'
 import { MedicineList, type Group } from '../features/billing/MedicineList'
 import { PaymentEditor } from '../features/billing/PaymentEditor'
 import { useBillingData } from '../features/billing/useBillingData'
+import { ReturnPanel } from '../features/returns/ReturnPanel'
 
 const CAN_BILL = ['owner', 'branch_manager', 'billing_staff']
 
@@ -228,5 +229,34 @@ export function Billing() {
       </div>
     )
   }
-  return <BillingInner branchId={selected.id} branchName={selected.name} />
+  return <BillingTabs branchId={selected.id} branchName={selected.name} />
+}
+
+// Both tabs stay mounted, so a half-made cart is not lost when you look at a return.
+function BillingTabs({ branchId, branchName }: { branchId: string; branchName: string }) {
+  const [tab, setTab] = useState<'bill' | 'return'>('bill')
+  const tabs = [
+    { v: 'bill', label: 'નવું Bill' },
+    { v: 'return', label: 'Bill શોધો અને પરત કરો' },
+  ] as const
+  return (
+    <div>
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:max-w-xl" role="group" aria-label="Billing વિભાગ">
+        {tabs.map((t) => (
+          <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}
+            className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+              tab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
+            }`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className={tab === 'bill' ? '' : 'hidden'}>
+        <BillingInner branchId={branchId} branchName={branchName} />
+      </div>
+      <div className={tab === 'return' ? '' : 'hidden'}>
+        <ReturnPanel branchId={branchId} branchName={branchName} />
+      </div>
+    </div>
+  )
 }

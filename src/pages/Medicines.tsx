@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { MedicineForm } from '../features/medicines/MedicineForm'
 import { STATUS_META, StatusBadges } from '../features/medicines/StatusBadge'
 import { formatDate, type StatusKey, type StockRow } from '../features/medicines/stock'
 import { useStockRows } from '../features/medicines/useStockRows'
@@ -17,6 +20,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' })
 
 function ExpiryText({ row }: { row: StockRow }) {
+  if (!row.hasBatch) return <span>—</span>
   const note = row.daysLeft < 0 ? 'સમાપ્ત' : `${row.daysLeft} દિવસ બાકી`
   return (
     <>
@@ -42,8 +46,21 @@ function StockText({ row }: { row: StockRow }) {
   )
 }
 
+const CAN_ADD = ['owner', 'branch_manager', 'store_keeper']
+
 function MedicinesInner({ branchId, branchName }: { branchId: string; branchName: string }) {
   const { rows, state, reload } = useStockRows(branchId)
+  const { profile } = useAuth()
+  const [params, setParams] = useSearchParams()
+  const [view, setView] = useState<'list' | 'new'>(params.get('new') === '1' ? 'new' : 'list')
+  const [notice, setNotice] = useState<string | null>(null)
+  const canAdd = profile ? CAN_ADD.includes(profile.role) : false
+
+  function closeForm() {
+    setView('list')
+    setParams({}, { replace: true })
+  }
+
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
 
@@ -56,10 +73,47 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
     })
   }, [rows, query, filter])
 
+  if (view === 'new') {
+    if (!canAdd) {
+      return (
+        <div>
+          <p className="text-slate-600 dark:text-slate-400">તમને નવી દવા ઉમેરવાની પરવાનગી નથી.</p>
+          <button type="button" className="btn-ghost mt-3" onClick={closeForm}>પાછા</button>
+        </div>
+      )
+    }
+    return (
+      <MedicineForm
+        onCancel={closeForm}
+        onSaved={() => {
+          setNotice('નવી દવા ઉમેરાઈ. હવે Purchases માંથી તેનો batch અને stock ઉમેરો.')
+          closeForm()
+          reload()
+        }}
+      />
+    )
+  }
+
   return (
     <div>
-      <h1 className="text-2xl font-bold">Medicines</h1>
-      <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Medicines</h1>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
+        </div>
+        {canAdd && (
+          <button type="button" className="btn-primary" onClick={() => { setNotice(null); setView('new') }}>
+            + નવી દવા
+          </button>
+        )}
+      </div>
+
+      {notice && (
+        <div role="status" className="mt-4 flex items-start justify-between gap-2 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+          <p>{notice}</p>
+          <button type="button" className="btn-ghost min-w-11 border-0 px-0" aria-label="સંદેશ બંધ કરો" onClick={() => setNotice(null)}>✕</button>
+        </div>
+      )}
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <div className="flex-1">
@@ -135,7 +189,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
 
         {state === 'ready' && visible.length > 0 && (
           <>
-            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{visible.length} batch</p>
+            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{visible.length} દવા/batch</p>
 
             {/* Mobile: cards */}
             <ul className="space-y-3 md:hidden">
@@ -151,7 +205,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                   <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div>
                       <dt className="text-slate-600 dark:text-slate-400">Batch</dt>
-                      <dd className="break-all font-medium">{r.batchNo}</dd>
+                      <dd className="break-all font-medium">{r.hasBatch ? r.batchNo : 'batch નથી'}</dd>
                     </div>
                     <div>
                       <dt className="text-slate-600 dark:text-slate-400">Expiry</dt>
@@ -192,7 +246,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                   {visible.map((r) => (
                     <tr key={r.batchId} className="align-top">
                       <td className="px-3 py-3 font-semibold">{r.name}</td>
-                      <td className="break-all px-3 py-3">{r.batchNo}</td>
+                      <td className="break-all px-3 py-3">{r.hasBatch ? r.batchNo : 'batch નથી'}</td>
                       <td className="px-3 py-3"><ExpiryText row={r} /></td>
                       <td className="px-3 py-3 text-right"><StockText row={r} /></td>
                       <td className="px-3 py-3 text-right">{money.format(r.mrp)}</td>
