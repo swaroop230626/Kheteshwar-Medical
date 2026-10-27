@@ -21,7 +21,7 @@ export function PaymentEditor({ rows, total, onChange, disabled }: Props) {
       <div className="mt-3 space-y-3">
         {rows.map((r, idx) => (
           <div key={r.key} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
-            <div>
+            <div className="min-w-0">
               <label htmlFor={`${r.key}-m`} className="mb-1 block text-sm font-medium">રીત</label>
               <select id={`${r.key}-m`} className="field" value={r.method} disabled={disabled}
                 onChange={(e) => patch(r.key, { method: e.target.value as PayMethod })}>
@@ -30,7 +30,7 @@ export function PaymentEditor({ rows, total, onChange, disabled }: Props) {
                 ))}
               </select>
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor={`${r.key}-a`} className="mb-1 block text-sm font-medium">રકમ (₹)</label>
               <input id={`${r.key}-a`} inputMode="decimal" className="field" disabled={disabled}
                 placeholder={resolved.amounts[idx] > 0 ? String(resolved.amounts[idx]) : '0'}

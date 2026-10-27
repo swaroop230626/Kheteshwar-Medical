@@ -5,6 +5,7 @@ import './index.css'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 import { EnvError } from './components/EnvError'
+import { UpdatePrompt } from './components/UpdatePrompt'
 import { missingEnv } from './lib/supabase'
 
 const root = document.getElementById('root')
@@ -21,5 +22,6 @@ createRoot(root).render(
         </AuthProvider>
       </BrowserRouter>
     )}
+    <UpdatePrompt />
   </StrictMode>,
 )

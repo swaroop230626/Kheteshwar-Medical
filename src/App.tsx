@@ -9,7 +9,6 @@ import { Customers } from './pages/Customers'
 import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
-import { Placeholder } from './pages/Placeholder'
 import { Purchases } from './pages/Purchases'
 
 // Needs a session and a readable profile.

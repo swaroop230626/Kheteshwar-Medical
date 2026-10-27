@@ -50,7 +50,7 @@ export function CartLines({ lines, batchById, batchesByMedicine, onQty, onBatch,
             </div>
 
             <div className="mt-2 grid grid-cols-[1fr_6rem] gap-3">
-              <div>
+              <div className="min-w-0">
                 <label htmlFor={`${l.key}-b`} className="mb-1 block text-sm font-medium">Batch</label>
                 <select id={`${l.key}-b`} className="field" value={l.batchId} disabled={disabled}
                   onChange={(e) => onBatch(l.key, e.target.value)}>
@@ -61,7 +61,7 @@ export function CartLines({ lines, batchById, batchesByMedicine, onQty, onBatch,
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <label htmlFor={`${l.key}-q`} className="mb-1 block text-sm font-medium">Qty</label>
                 <input id={`${l.key}-q`} inputMode="numeric" className="field" value={l.qty} disabled={disabled}
                   aria-invalid={err !== null} onChange={(e) => onQty(l.key, e.target.value)} />
