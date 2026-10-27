@@ -1,8 +1,19 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { createMedicine } from './create'
+import { createMedicine, updateMedicine, type MedicineDraft } from './create'
 
-const GST = [0, 5, 12, 18] as const
-const SCHEDULES = ['OTC', 'H', 'H1', 'X'] as const
+const GST = ['0', '5', '12', '18']
+const SCHEDULES = ['OTC', 'H', 'H1', 'X']
+
+const EMPTY: MedicineDraft = {
+  name: '',
+  genericName: '',
+  manufacturer: '',
+  hsnCode: '',
+  gst: '12',
+  schedule: 'OTC',
+  mrp: '',
+  reorder: '0',
+}
 
 function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
   return (
@@ -20,19 +31,32 @@ interface Errors {
   reorder?: string
 }
 
-export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSaved: () => void }) {
-  const [name, setName] = useState('')
-  const [generic, setGeneric] = useState('')
-  const [maker, setMaker] = useState('')
-  const [hsn, setHsn] = useState('')
-  const [gst, setGst] = useState('12')
-  const [schedule, setSchedule] = useState('OTC')
-  const [mrp, setMrp] = useState('')
-  const [reorder, setReorder] = useState('0')
+interface Props {
+  medicineId?: string // set = edit mode
+  initial?: MedicineDraft
+  onCancel: () => void
+  onSaved: () => void
+}
+
+export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) {
+  const start = initial ?? EMPTY
+  const editing = medicineId !== undefined
+  const [name, setName] = useState(start.name)
+  const [generic, setGeneric] = useState(start.genericName)
+  const [maker, setMaker] = useState(start.manufacturer)
+  const [hsn, setHsn] = useState(start.hsnCode)
+  const [gst, setGst] = useState(start.gst)
+  const [schedule, setSchedule] = useState(start.schedule)
+  const [mrp, setMrp] = useState(start.mrp)
+  const [reorder, setReorder] = useState(start.reorder)
   const [errors, setErrors] = useState<Errors>({})
   const [saving, setSaving] = useState(false)
   const busy = useRef(false)
   const [problem, setProblem] = useState<{ message: string; technical?: string } | null>(null)
+
+  // keep an unusual saved value selectable instead of silently changing it
+  const gstOptions = GST.includes(gst) ? GST : [...GST, gst]
+  const scheduleOptions = SCHEDULES.includes(schedule) ? SCHEDULES : [...SCHEDULES, schedule]
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -48,9 +72,7 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
-    busy.current = true
-    setSaving(true)
-    const res = await createMedicine({
+    const payload = {
       name: name.trim(),
       genericName: generic.trim(),
       manufacturer: maker.trim(),
@@ -59,7 +81,11 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
       schedule,
       mrp: mrpNum,
       reorderLevel: reorderNum,
-    })
+    }
+
+    busy.current = true
+    setSaving(true)
+    const res = medicineId !== undefined ? await updateMedicine(medicineId, payload) : await createMedicine(payload)
     busy.current = false
     setSaving(false)
     if (!res.ok) return setProblem({ message: res.message, technical: res.technical })
@@ -69,7 +95,7 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
   return (
     <form onSubmit={submit} noValidate className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">નવી દવા</h1>
+        <h1 className="text-2xl font-bold">{editing ? 'દવા સુધારો' : 'નવી દવા'}</h1>
         <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>રદ કરો</button>
       </div>
 
@@ -91,14 +117,14 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
         </Field>
         <Field id="m-gst" label="GST %">
           <select id="m-gst" className="field" value={gst} disabled={saving} onChange={(e) => setGst(e.target.value)}>
-            {GST.map((g) => (
-              <option key={g} value={String(g)}>{g}%</option>
+            {gstOptions.map((g) => (
+              <option key={g} value={g}>{g}%</option>
             ))}
           </select>
         </Field>
         <Field id="m-schedule" label="Schedule">
           <select id="m-schedule" className="field" value={schedule} disabled={saving} onChange={(e) => setSchedule(e.target.value)}>
-            {SCHEDULES.map((s) => (
+            {scheduleOptions.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -112,7 +138,9 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
             onChange={(e) => setReorder(e.target.value)} />
         </Field>
         <p className="text-sm text-slate-600 dark:text-slate-400 sm:col-span-2">
-          અહીં batch ઉમેરાતો નથી. Batch અને stock Purchases માંથી આવે છે.
+          {editing
+            ? 'ફેરફાર ફક્ત દવાની વિગતોમાં લાગુ પડે છે. જૂના bill બદલાતા નથી, અને સ્ટોકમાં રહેલા batch નો MRP પણ બદલાતો નથી. નવા bill માં નવો GST વપરાશે.'
+            : 'અહીં batch ઉમેરાતો નથી. Batch અને stock Purchases માંથી આવે છે.'}
         </p>
       </section>
 
@@ -124,7 +152,7 @@ export function MedicineForm({ onCancel, onSaved }: { onCancel: () => void; onSa
       )}
 
       <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
-        {saving ? 'સેવ થઈ રહ્યું છે…' : 'દવા સેવ કરો'}
+        {saving ? 'સેવ થઈ રહ્યું છે…' : editing ? 'ફેરફાર સેવ કરો' : 'દવા સેવ કરો'}
       </button>
     </form>
   )

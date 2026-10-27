@@ -18,7 +18,7 @@ export function UpdatePrompt() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+      className="print:hidden fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900"
       style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <p className="font-semibold">નવું version ઉપલબ્ધ છે.</p>

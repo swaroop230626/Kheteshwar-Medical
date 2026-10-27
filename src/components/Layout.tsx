@@ -10,6 +10,7 @@ const NAV = [
   { to: '/purchases', label: 'Purchases', end: false },
   { to: '/billing', label: 'Billing', end: false },
   { to: '/customers', label: 'Customers', end: false },
+  { to: '/reports', label: 'Reports', end: false, roles: ['owner', 'branch_manager', 'accountant'] },
 ]
 
 export function Layout() {
@@ -36,7 +37,7 @@ export function Layout() {
     <div className="flex min-h-dvh">
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden print:hidden"
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
@@ -45,7 +46,7 @@ export function Layout() {
       <aside
         id="sidebar"
         aria-label="મુખ્ય મેનુ"
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 motion-reduce:transition-none lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 lg:visible dark:border-slate-800 dark:bg-slate-900 ${
+        className={`print:hidden fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 motion-reduce:transition-none lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 lg:visible dark:border-slate-800 dark:bg-slate-900 ${
           open ? 'translate-x-0' : '-translate-x-full invisible'
         }`}
       >
@@ -53,7 +54,7 @@ export function Layout() {
           Kheteshwar Medical
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {NAV.map((item) => (
+          {NAV.filter((item) => !item.roles || (profile !== null && item.roles.includes(profile.role))).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -81,7 +82,7 @@ export function Layout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-slate-200 bg-white/95 px-2 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:px-4">
+        <header className="print:hidden sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-slate-200 bg-white/95 px-2 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:px-4">
           <button
             type="button"
             className="btn-ghost min-w-11 border-0 px-0 lg:hidden"
@@ -116,7 +117,7 @@ export function Layout() {
           </button>
         </header>
 
-        <main className="min-w-0 flex-1 p-4 sm:p-6">
+        <main className="min-w-0 flex-1 p-4 sm:p-6 print:p-0">
           <Outlet />
         </main>
       </div>

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { fetchMedicine, type MedicineDraft } from '../features/medicines/create'
 import { MedicineForm } from '../features/medicines/MedicineForm'
 import { STATUS_META, StatusBadges } from '../features/medicines/StatusBadge'
 import { formatDate, type StatusKey, type StockRow } from '../features/medicines/stock'
@@ -55,6 +56,18 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
   const [view, setView] = useState<'list' | 'new'>(params.get('new') === '1' ? 'new' : 'list')
   const [notice, setNotice] = useState<string | null>(null)
   const canAdd = profile ? CAN_ADD.includes(profile.role) : false
+  const [editing, setEditing] = useState<{ id: string; initial: MedicineDraft } | null>(null)
+  const [editBusy, setEditBusy] = useState<string | null>(null)
+
+  async function openEdit(medicineId: string) {
+    if (editBusy) return
+    setNotice(null)
+    setEditBusy(medicineId)
+    const initial = await fetchMedicine(medicineId)
+    setEditBusy(null)
+    if (initial) setEditing({ id: medicineId, initial })
+    else setNotice('દવાની વિગતો લોડ થઈ શકી નથી. ફરી પ્રયાસ કરો.')
+  }
 
   function closeForm() {
     setView('list')
@@ -72,6 +85,21 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
       return r.name.toLowerCase().includes(q) || r.batchNo.toLowerCase().includes(q)
     })
   }, [rows, query, filter])
+
+  if (editing && canAdd) {
+    return (
+      <MedicineForm
+        medicineId={editing.id}
+        initial={editing.initial}
+        onCancel={() => setEditing(null)}
+        onSaved={() => {
+          setNotice('દવાની વિગતો સુધારાઈ.')
+          setEditing(null)
+          reload()
+        }}
+      />
+    )
+  }
 
   if (view === 'new') {
     if (!canAdd) {
@@ -224,6 +252,12 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                       <dd className="font-medium">{r.reorderLevel}</dd>
                     </div>
                   </dl>
+                  {canAdd && (
+                    <button type="button" className="btn-ghost mt-3 w-full" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                      {editBusy === r.medicineId ? 'લોડ થઈ રહ્યું છે…' : 'સુધારો'}
+                    </button>
+                  )}
+                
                 </li>
               ))}
             </ul>
@@ -240,6 +274,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                     <th scope="col" className="px-3 py-3 text-right">MRP</th>
                     <th scope="col" className="px-3 py-3 text-right">Reorder</th>
                     <th scope="col" className="px-3 py-3">Status</th>
+                    <th scope="col" className="px-3 py-3"><span className="sr-only">સુધારો</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -252,6 +287,13 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                       <td className="px-3 py-3 text-right">{money.format(r.mrp)}</td>
                       <td className="px-3 py-3 text-right">{r.reorderLevel}</td>
                       <td className="px-3 py-3"><StatusBadges statuses={r.statuses} /></td>
+                      <td className="px-3 py-1">
+                        {canAdd && (
+                          <button type="button" className="btn-ghost" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                            {editBusy === r.medicineId ? '…' : 'સુધારો'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -129,8 +129,22 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
       merged.set(name, round2((merged.get(name) ?? 0) + p.amount))
     }
 
+    let cgst = 0
+    let sgst = 0
+    for (const l of lines) {
+      const b = batchById.get(l.batchId)
+      const q = parseQty(l.qty)
+      if (!b || q === null) continue
+      const a = lineAmounts(b.mrp, q, l.gstRate)
+      cgst += a.cgst
+      sgst += a.sgst
+    }
+
     setResult({
       billNo: res.billNo,
+      date: new Date().toISOString(),
+      cgst: round2(cgst),
+      sgst: round2(sgst),
       customer: label,
       items: lines.flatMap((l) => {
         const b = batchById.get(l.batchId)
@@ -150,6 +164,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     return (
       <BillResult
         bill={result}
+        branchId={branchId}
         onNew={() => {
           resetAll()
         }}
@@ -241,7 +256,7 @@ function BillingTabs({ branchId, branchName }: { branchId: string; branchName: s
   ] as const
   return (
     <div>
-      <div className="mb-5 grid grid-cols-2 gap-2 sm:max-w-xl" role="group" aria-label="Billing વિભાગ">
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:max-w-xl print:hidden" role="group" aria-label="Billing વિભાગ">
         {tabs.map((t) => (
           <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}
             className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${

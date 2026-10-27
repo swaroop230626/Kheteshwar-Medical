@@ -10,6 +10,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
 import { Purchases } from './pages/Purchases'
+import { Reports } from './pages/Reports'
 
 // Needs a session and a readable profile.
 function RequireAuth() {
@@ -94,6 +95,7 @@ export default function App() {
           <Route path="purchases" element={<Purchases />} />
           <Route path="billing" element={<Billing />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
