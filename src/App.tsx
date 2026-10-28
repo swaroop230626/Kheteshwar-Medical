@@ -4,12 +4,14 @@ import { BranchProvider, useBranch } from './branch/BranchContext'
 import { Layout } from './components/Layout'
 import { LoadingScreen, MessageScreen } from './components/Screen'
 import { BranchSelect } from './pages/BranchSelect'
+import { Admin } from './pages/Admin'
 import { Billing } from './pages/Billing'
 import { Customers } from './pages/Customers'
 import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
 import { Purchases } from './pages/Purchases'
+import { Register } from './pages/Register'
 import { Reports } from './pages/Reports'
 
 // Needs a session and a readable profile.
@@ -96,6 +98,8 @@ export default function App() {
           <Route path="billing" element={<Billing />} />
           <Route path="customers" element={<Customers />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="register" element={<Register />} />
+          <Route path="admin" element={<Admin />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

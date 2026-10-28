@@ -21,6 +21,8 @@ import {
 import { CustomerPicker } from '../features/billing/CustomerPicker'
 import { MedicineList, type Group } from '../features/billing/MedicineList'
 import { PaymentEditor } from '../features/billing/PaymentEditor'
+import { RxPanel } from '../features/billing/RxPanel'
+import { freshRx, isScheduled, isStrict, toPayload, validateRx, type RxDraft } from '../features/billing/rx'
 import { useBillingData } from '../features/billing/useBillingData'
 import { ReturnPanel } from '../features/returns/ReturnPanel'
 
@@ -35,10 +37,11 @@ interface Problem {
 }
 
 function BillingInner({ branchId, branchName }: { branchId: string; branchName: string }) {
-  const { batches, customers, state, reload } = useBillingData(branchId)
+  const { batches, customers, doctors, state, reload } = useBillingData(branchId)
   const [lines, setLines] = useState<CartLine[]>([])
   const [customer, setCustomer] = useState<CustomerDraft>(freshCustomer)
   const [pay, setPay] = useState<PayRow[]>(freshPay)
+  const [rx, setRx] = useState<RxDraft>(freshRx)
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)
   const [problem, setProblem] = useState<Problem | null>(null)
@@ -60,6 +63,10 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
   const totals = useMemo(() => cartTotals(lines, batchById), [lines, batchById])
   const inCart = useMemo(() => new Set(lines.map((l) => l.batchId)), [lines])
+  // Schedule H / H1 / X medicines in the cart need doctor + patient details
+  const schedules = useMemo(() => lines.map((l) => batchById.get(l.batchId)?.schedule ?? 'OTC'), [lines, batchById])
+  const needsRx = schedules.some(isScheduled)
+  const rxStrict = schedules.some(isStrict)
 
   function addBatch(b: SellableBatch) {
     setProblem(null)
@@ -77,6 +84,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     setLines([])
     setCustomer(freshCustomer())
     setPay(freshPay())
+    setRx(freshRx())
     setProblem(null)
     setResult(null)
   }
@@ -91,6 +99,11 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     }
     if (customer.mode === 'existing' && customer.customerId === '') return setProblem({ message: 'Customer પસંદ કરો.' })
     if (customer.mode === 'new' && customer.newName.trim() === '') return setProblem({ message: 'નવા customer નું નામ લખો.' })
+
+    if (needsRx) {
+      const rxError = validateRx(rx, rxStrict, doctors)
+      if (rxError) return setProblem({ message: rxError })
+    }
 
     const rp = resolvePayments(pay, totals.total)
     if (rp.invalid || rp.sum !== totals.total) {
@@ -112,6 +125,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
       newCustomerPhone: customer.mode === 'new' ? customer.newPhone.trim() : null,
       items: lines.map((l) => ({ batch_id: l.batchId, qty: parseQty(l.qty) ?? 0 })),
       payments,
+      rx: needsRx ? toPayload(rx, doctors) : null,
     })
     savingRef.current = false
     setSaving(false)
@@ -204,6 +218,8 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
             />
 
             <CustomerPicker customers={customers} value={customer} onChange={setCustomer} disabled={saving} />
+
+            {needsRx && <RxPanel doctors={doctors} value={rx} onChange={setRx} strict={rxStrict} disabled={saving} />}
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Totals">
               <dl className="space-y-1 text-sm">

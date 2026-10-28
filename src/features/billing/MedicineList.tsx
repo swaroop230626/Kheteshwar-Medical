@@ -65,6 +65,7 @@ export function MedicineList({ groups, inCart, onAdd }: Props) {
                 </p>
                 <p className="text-sm font-medium">
                   {money.format(b.mrp)} <span className="text-slate-600 dark:text-slate-400">· GST {b.gstRate}%</span>
+                  {b.schedule !== 'OTC' && <span className="font-semibold text-orange-700 dark:text-orange-300"> · Schedule {b.schedule}</span>}
                   {g.batches.length > 1 && (
                     <span className="text-slate-600 dark:text-slate-400"> · {g.batches.length} batch</span>
                   )}

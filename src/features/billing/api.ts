@@ -1,12 +1,14 @@
 import { supabase } from '../../lib/supabase'
 import { fetchAll } from '../../lib/fetchAll'
 import { isRecord, toNum } from '../../lib/parse'
+import type { RxPayload } from './rx'
 
 export interface SellableBatch {
   id: string
   medicineId: string
   name: string
   gstRate: number
+  schedule: string // OTC / H / H1 / X
   batchNo: string
   expiryDate: string
   mrp: number
@@ -28,6 +30,7 @@ export interface CreateBillInput {
   newCustomerPhone: string | null
   items: { batch_id: string; qty: number }[]
   payments: { method: string; amount: number }[]
+  rx: RxPayload | null // doctor + patient, needed for Schedule H / H1 / X
 }
 
 export type CreateBillResult =
@@ -54,14 +57,14 @@ export async function fetchSellableBatches(branchId: string): Promise<SellableBa
         .range(a, b),
     ),
     fetchAll((a, b) =>
-      supabase.from('medicines').select('id, name, gst_rate').is('deleted_at', null).order('id').range(a, b),
+      supabase.from('medicines').select('id, name, gst_rate, schedule').is('deleted_at', null).order('id').range(a, b),
     ),
   ])
 
-  const meds = new Map<string, { name: string; gstRate: number }>()
+  const meds = new Map<string, { name: string; gstRate: number; schedule: string }>()
   for (const m of medicines) {
     if (isRecord(m) && typeof m.id === 'string' && typeof m.name === 'string') {
-      meds.set(m.id, { name: m.name, gstRate: toNum(m.gst_rate) ?? 0 })
+      meds.set(m.id, { name: m.name, gstRate: toNum(m.gst_rate) ?? 0, schedule: typeof m.schedule === 'string' ? m.schedule : 'OTC' })
     }
   }
 
@@ -77,6 +80,7 @@ export async function fetchSellableBatches(branchId: string): Promise<SellableBa
       medicineId: medicine_id,
       name: med.name,
       gstRate: med.gstRate,
+      schedule: med.schedule,
       batchNo: batch_no,
       expiryDate: expiry_date,
       mrp: toNum(b.mrp) ?? 0,
@@ -127,6 +131,12 @@ function translate(err: { message: string; code?: string }): string {
     const [paid, total] = part('PAYMENT_MISMATCH').split(':')
     return `ચૂકવણીનો સરવાળો (₹${paid}) bill ની રકમ (₹${total}) સાથે મેળ ખાતો નથી.`
   }
+  if (m.includes('RX_REQUIRED')) return 'Schedule H/H1/X દવા માટે doctor અને patient ની વિગતો જરૂરી છે.'
+  if (m.includes('RX_DOCTOR')) return 'Doctor ની વિગતો ખૂટે છે કે doctor મળ્યા નથી.'
+  if (m.includes('RX_PATIENT')) return 'Patient નું નામ લખો.'
+  if (m.includes('RX_REG_REQUIRED')) return 'Schedule H1/X માટે doctor ની registration no જરૂરી છે.'
+  if (m.includes('RX_ADDRESS_REQUIRED')) return 'Schedule H1/X માટે patient નું સરનામું જરૂરી છે.'
+  if (m.includes('NO_COMPANY')) return 'Account set up નથી, owner નો સંપર્ક કરો.'
   if (m.includes('CREDIT_NEEDS_CUSTOMER')) return 'Credit માટે customer પસંદ કરવો જરૂરી છે.'
   if (m.includes('CUSTOMER_NOT_FOUND')) return 'Customer મળ્યો નથી. યાદી ફરી લોડ કરો.'
   if (m.includes('EMPTY_CART')) return 'Cart ખાલી છે.'
@@ -137,7 +147,7 @@ function translate(err: { message: string; code?: string }): string {
   if (err.code === '23514') return 'સ્ટોક બીજા bill માં વપરાઈ ગયો છે. યાદી ફરી લોડ કરી ચકાસો.'
   if (err.code === '42501' || m.toLowerCase().includes('row-level security')) return 'તમને bill બનાવવાની પરવાનગી નથી.'
   if (err.code === 'PGRST202' || m.includes('Could not find the function')) {
-    return 'create_bill function Supabase માં બનાવ્યું નથી. supabase/create_bill.sql ચલાવો.'
+    return 'create_bill function અપડેટ નથી. supabase/schedule_register.sql પછી create_bill_v2.sql ચલાવો.'
   }
   return 'Bill સેવ થઈ શક્યું નહીં. કંઈ પણ સેવ થયું નથી.'
 }
@@ -151,6 +161,7 @@ export async function createBill(input: CreateBillInput): Promise<CreateBillResu
       p_new_customer_phone: input.newCustomerPhone,
       p_items: input.items,
       p_payments: input.payments,
+      p_rx: input.rx,
     })
     if (error) return { ok: false, message: translate(error), technical: `${error.code ?? ''} ${error.message}`.trim() }
     const res: unknown = data
