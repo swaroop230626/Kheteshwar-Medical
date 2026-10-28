@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { fetchAll } from '../../lib/fetchAll'
 import { isRecord, toNum } from '../../lib/parse'
+import { countOf } from '../prescriptions/api'
 
 export interface DoctorOption {
   id: string
@@ -11,6 +12,11 @@ export interface DoctorOption {
 
 export interface RegisterRow {
   id: string
+  billId: string
+  entryType: string // 'sale' | 'return'
+  returnNo: string
+  cancelled: boolean // the bill was cancelled
+  photos: number // prescription photos on this bill
   date: string // ISO time
   billNo: string
   medicine: string
@@ -80,7 +86,7 @@ export async function fetchRegister(branchId: string, from: string, to: string):
     const rows = await fetchAll((a, b) =>
       supabase
         .from('schedule_register')
-        .select('id, sale_date, bill_no, medicine_name, schedule, batch_no, qty, doctor_name, doctor_reg_no, patient_name, patient_address, patient_age')
+        .select('id, bill_id, entry_type, return_no, sale_date, bill_no, medicine_name, schedule, batch_no, qty, doctor_name, doctor_reg_no, patient_name, patient_address, patient_age, bills(deleted_at, prescription_files(id))')
         .eq('branch_id', branchId)
         .gte('sale_date', `${from}T00:00:00+05:30`)
         .lte('sale_date', `${to}T23:59:59.999+05:30`)
@@ -91,8 +97,14 @@ export async function fetchRegister(branchId: string, from: string, to: string):
     const out: RegisterRow[] = []
     for (const r of rows) {
       if (!isRecord(r) || typeof r.id !== 'string') continue
+      const bill = Array.isArray(r.bills) ? (r.bills[0] as unknown) : r.bills
       out.push({
         id: r.id,
+        billId: text(r.bill_id),
+        entryType: text(r.entry_type) || 'sale',
+        returnNo: text(r.return_no),
+        cancelled: isRecord(bill) && typeof bill.deleted_at === 'string',
+        photos: isRecord(bill) ? countOf(bill.prescription_files) : 0,
         date: text(r.sale_date),
         billNo: text(r.bill_no),
         medicine: text(r.medicine_name),

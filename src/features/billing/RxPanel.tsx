@@ -1,3 +1,4 @@
+import { PhotoPicker } from '../prescriptions/PhotoPicker'
 import type { DoctorOption } from '../register/api'
 import type { DoctorMode, RxDraft } from './rx'
 
@@ -6,10 +7,12 @@ interface Props {
   value: RxDraft
   onChange: (v: RxDraft) => void
   strict: boolean // Schedule H1 / X in the cart
+  files: File[]
+  onFiles: (f: File[]) => void
   disabled: boolean
 }
 
-export function RxPanel({ doctors, value, onChange, strict, disabled }: Props) {
+export function RxPanel({ doctors, value, onChange, strict, files, onFiles, disabled }: Props) {
   const modes: { v: DoctorMode; label: string }[] = [
     { v: 'existing', label: 'હાલના doctor' },
     { v: 'new', label: 'નવા doctor' },
@@ -78,6 +81,8 @@ export function RxPanel({ doctors, value, onChange, strict, disabled }: Props) {
           <input id="rx-paddr" className="field" value={value.patientAddress} disabled={disabled} onChange={(e) => set({ patientAddress: e.target.value })} />
         </div>
       </div>
+
+      <PhotoPicker files={files} onChange={onFiles} disabled={disabled} />
     </section>
   )
 }

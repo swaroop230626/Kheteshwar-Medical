@@ -16,7 +16,7 @@ export interface BillSummary {
   payments: { label: string; amount: number }[]
 }
 
-export function BillResult({ bill, branchId, onNew }: { bill: BillSummary; branchId: string; onNew: () => void }) {
+export function BillResult({ bill, branchId, warning, onNew }: { bill: BillSummary; branchId: string; warning?: string; onNew: () => void }) {
   const [paper, setPaper] = useState<Paper>('thermal')
 
   return (
@@ -29,6 +29,10 @@ export function BillResult({ bill, branchId, onNew }: { bill: BillSummary; branc
           <p className="font-semibold">Bill સફળતાથી સેવ થયું. સ્ટોક ઘટી ગયો છે.</p>
           <p className="text-2xl font-bold">{bill.billNo}</p>
         </div>
+
+        {warning && (
+          <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">{warning}</p>
+        )}
 
         <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-600 dark:text-slate-400">Customer: <span className="font-medium text-slate-900 dark:text-slate-100">{bill.customer}</span></p>

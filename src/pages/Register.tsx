@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { formatDate } from '../features/medicines/stock'
@@ -10,6 +10,7 @@ import {
   type DoctorOption,
   type RegisterRow,
 } from '../features/register/api'
+import { RxPhotos } from '../features/prescriptions/RxPhotos'
 import { downloadCsv, safeName } from '../lib/csv'
 
 const CAN_VIEW = ['owner', 'branch_manager', 'billing_staff', 'accountant']
@@ -38,7 +39,22 @@ function ProblemBox({ p, onRetry }: { p: Problem; onRetry?: () => void }) {
   )
 }
 
-function RegisterView({ rows }: { rows: RegisterRow[] }) {
+function Badges({ r }: { r: RegisterRow }) {
+  return (
+    <span className="flex flex-wrap gap-1">
+      {r.entryType === 'return' && (
+        <span className="rounded-md bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-900 dark:bg-sky-950 dark:text-sky-200">Return {r.returnNo}</span>
+      )}
+      {r.cancelled && (
+        <span className="rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-900 dark:bg-red-950 dark:text-red-200">Bill રદ</span>
+      )}
+    </span>
+  )
+}
+
+function RegisterView({ rows, branchId, canAdd, onChanged }: { rows: RegisterRow[]; branchId: string; canAdd: boolean; onChanged: () => void }) {
+  const [openId, setOpenId] = useState<string | null>(null)
+
   if (rows.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
@@ -46,22 +62,38 @@ function RegisterView({ rows }: { rows: RegisterRow[] }) {
       </p>
     )
   }
+
+  const photoLabel = (r: RegisterRow) => (r.photos > 0 ? `ફોટા (${r.photos})` : canAdd ? 'ફોટો ઉમેરો' : 'ફોટો નથી')
+  const photoButton = (r: RegisterRow) => (
+    <button type="button" className="btn-ghost print:hidden" aria-expanded={openId === r.id}
+      onClick={() => setOpenId(openId === r.id ? null : r.id)}>
+      {photoLabel(r)}
+    </button>
+  )
+  const panel = (r: RegisterRow) => (
+    <RxPhotos branchId={branchId} billId={r.billId} canAdd={canAdd} onChanged={onChanged} />
+  )
+  const qty = (r: RegisterRow) => (r.entryType === 'return' ? `−${r.qty}` : String(r.qty))
+
   return (
     <>
       <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{rows.length} નોંધ</p>
 
       <ul className="space-y-3 lg:hidden print:hidden">
         {rows.map((r) => (
-          <li key={r.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <li key={r.id} className={`rounded-xl border p-4 ${r.entryType === 'return' ? 'border-sky-300 bg-sky-50 dark:border-sky-900 dark:bg-slate-900' : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'}`}>
             <div className="flex items-start justify-between gap-2">
               <p className="min-w-0 break-words font-semibold">{r.medicine}</p>
               <span className="shrink-0 rounded-md bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-900 dark:bg-orange-950 dark:text-orange-200">{r.schedule}</span>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">{when(r.date)} · Bill {r.billNo} · Batch {r.batchNo || '—'} · Qty {r.qty}</p>
+            <Badges r={r} />
+            <p className="text-sm text-slate-600 dark:text-slate-400">{when(r.date)} · Bill {r.billNo} · Batch {r.batchNo || '—'} · Qty {qty(r)}</p>
             <dl className="mt-2 grid grid-cols-1 gap-1 text-sm">
               <div><dt className="inline text-slate-600 dark:text-slate-400">Patient: </dt><dd className="inline break-words">{r.patientName}{r.patientAge && `, ${r.patientAge}`}{r.patientAddress && ` · ${r.patientAddress}`}</dd></div>
               <div><dt className="inline text-slate-600 dark:text-slate-400">Doctor: </dt><dd className="inline break-words">{r.doctorName}{r.doctorRegNo && ` (Reg ${r.doctorRegNo})`}</dd></div>
             </dl>
+            <div className="mt-3">{photoButton(r)}</div>
+            {openId === r.id && <div className="mt-3">{panel(r)}</div>}
           </li>
         ))}
       </ul>
@@ -73,25 +105,33 @@ function RegisterView({ rows }: { rows: RegisterRow[] }) {
               <th scope="col" className="px-3 py-3">તારીખ</th>
               <th scope="col" className="px-3 py-3">Bill</th>
               <th scope="col" className="px-3 py-3">દવા</th>
-              <th scope="col" className="px-3 py-3">Sch.</th>
-              <th scope="col" className="px-3 py-3">Batch</th>
               <th scope="col" className="px-3 py-3 text-right">Qty</th>
               <th scope="col" className="px-3 py-3">Patient</th>
               <th scope="col" className="px-3 py-3">Doctor</th>
+              <th scope="col" className="px-3 py-3">Rx ફોટો</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 align-top dark:divide-slate-800">
             {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="px-3 py-3">{when(r.date)}</td>
-                <td className="break-all px-3 py-3">{r.billNo}</td>
-                <td className="px-3 py-3 font-medium">{r.medicine}</td>
-                <td className="px-3 py-3 font-semibold">{r.schedule}</td>
-                <td className="break-all px-3 py-3">{r.batchNo || '—'}</td>
-                <td className="px-3 py-3 text-right">{r.qty}</td>
-                <td className="px-3 py-3">{r.patientName}{r.patientAge && `, ${r.patientAge}`}{r.patientAddress && <span className="block text-slate-600 dark:text-slate-400">{r.patientAddress}</span>}</td>
-                <td className="px-3 py-3">{r.doctorName}{r.doctorRegNo && <span className="block text-slate-600 dark:text-slate-400">Reg {r.doctorRegNo}</span>}</td>
-              </tr>
+              <Fragment key={r.id}>
+                <tr className={r.entryType === 'return' ? 'bg-sky-50 dark:bg-slate-800' : ''}>
+                  <td className="px-3 py-3">{when(r.date)}</td>
+                  <td className="px-3 py-3"><span className="block break-all">{r.billNo}</span><Badges r={r} /></td>
+                  <td className="px-3 py-3"><span className="font-medium">{r.medicine}</span> <b>({r.schedule})</b><span className="block break-all text-slate-600 dark:text-slate-400">Batch {r.batchNo || '—'}</span></td>
+                  <td className="px-3 py-3 text-right">{qty(r)}</td>
+                  <td className="px-3 py-3">{r.patientName}{r.patientAge && `, ${r.patientAge}`}{r.patientAddress && <span className="block text-slate-600 dark:text-slate-400">{r.patientAddress}</span>}</td>
+                  <td className="px-3 py-3">{r.doctorName}{r.doctorRegNo && <span className="block text-slate-600 dark:text-slate-400">Reg {r.doctorRegNo}</span>}</td>
+                  <td className="px-3 py-1">
+                    <span className="hidden print:inline">{r.photos > 0 ? `${r.photos} ફોટા` : '—'}</span>
+                    {photoButton(r)}
+                  </td>
+                </tr>
+                {openId === r.id && (
+                  <tr className="print:hidden">
+                    <td colSpan={7} className="px-3 py-3">{panel(r)}</td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -100,7 +140,7 @@ function RegisterView({ rows }: { rows: RegisterRow[] }) {
   )
 }
 
-function RegisterTab({ branchId, branchName }: { branchId: string; branchName: string }) {
+function RegisterTab({ branchId, branchName, canAdd }: { branchId: string; branchName: string; canAdd: boolean }) {
   const n = new Date()
   const [from, setFrom] = useState(iso(new Date(n.getFullYear(), n.getMonth(), 1)))
   const [to, setTo] = useState(iso(n))
@@ -144,8 +184,8 @@ function RegisterTab({ branchId, branchName }: { branchId: string; branchName: s
 
   function exportCsv() {
     downloadCsv(`schedule-register_${safeName(branchName)}_${from}_${to}.csv`, [
-      ['Date', 'Bill no', 'Medicine', 'Schedule', 'Batch', 'Qty', 'Patient name', 'Patient age', 'Patient address', 'Doctor', 'Doctor reg no'],
-      ...visible.map((r) => [when(r.date), r.billNo, r.medicine, r.schedule, r.batchNo, r.qty, r.patientName, r.patientAge, r.patientAddress, r.doctorName, r.doctorRegNo]),
+      ['Date', 'Type', 'Return no', 'Bill no', 'Bill cancelled', 'Medicine', 'Schedule', 'Batch', 'Qty', 'Patient name', 'Patient age', 'Patient address', 'Doctor', 'Doctor reg no', 'Rx photos'],
+      ...visible.map((r) => [when(r.date), r.entryType === 'return' ? 'Return' : 'Sale', r.returnNo, r.billNo, r.cancelled ? 'Yes' : '', r.medicine, r.schedule, r.batchNo, r.entryType === 'return' ? -r.qty : r.qty, r.patientName, r.patientAge, r.patientAddress, r.doctorName, r.doctorRegNo, r.photos]),
     ])
   }
 
@@ -196,7 +236,7 @@ function RegisterTab({ branchId, branchName }: { branchId: string; branchName: s
         {rangeError && <p role="alert" className="text-red-700 dark:text-red-300">{rangeError}</p>}
         {!rangeError && state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
         {!rangeError && state === 'error' && problem && <ProblemBox p={problem} onRetry={() => setReloadKey((k) => k + 1)} />}
-        {!rangeError && state === 'ready' && <RegisterView rows={visible} />}
+        {!rangeError && state === 'ready' && <RegisterView rows={visible} branchId={branchId} canAdd={canAdd} onChanged={() => setReloadKey((k) => k + 1)} />}
       </div>
     </div>
   )
@@ -331,7 +371,7 @@ export function Register() {
       </div>
       <div className="mt-4">
         {tab === 'register' ? (
-          <RegisterTab branchId={selected.id} branchName={selected.name} />
+          <RegisterTab branchId={selected.id} branchName={selected.name} canAdd={CAN_ADD_DOCTOR.includes(profile.role)} />
         ) : (
           <DoctorsTab canAdd={CAN_ADD_DOCTOR.includes(profile.role)} />
         )}

@@ -34,7 +34,7 @@ export interface CreateBillInput {
 }
 
 export type CreateBillResult =
-  | { ok: true; billNo: string; total: number }
+  | { ok: true; billId: string; billNo: string; total: number }
   | { ok: false; message: string; technical: string }
 
 function todayISO(): string {
@@ -166,7 +166,7 @@ export async function createBill(input: CreateBillInput): Promise<CreateBillResu
     if (error) return { ok: false, message: translate(error), technical: `${error.code ?? ''} ${error.message}`.trim() }
     const res: unknown = data
     if (isRecord(res) && typeof res.bill_no === 'string') {
-      return { ok: true, billNo: res.bill_no, total: toNum(res.total) ?? 0 }
+      return { ok: true, billId: typeof res.bill_id === 'string' ? res.bill_id : '', billNo: res.bill_no, total: toNum(res.total) ?? 0 }
     }
     return { ok: false, message: 'Bill સેવ થયું, પણ જવાબ સમજાયો નહીં. Medicines માં stock તપાસો.', technical: JSON.stringify(res) }
   } catch (e) {

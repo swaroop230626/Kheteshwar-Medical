@@ -22,6 +22,7 @@ import { CustomerPicker } from '../features/billing/CustomerPicker'
 import { MedicineList, type Group } from '../features/billing/MedicineList'
 import { PaymentEditor } from '../features/billing/PaymentEditor'
 import { RxPanel } from '../features/billing/RxPanel'
+import { uploadPrescriptions } from '../features/prescriptions/api'
 import { freshRx, isScheduled, isStrict, toPayload, validateRx, type RxDraft } from '../features/billing/rx'
 import { useBillingData } from '../features/billing/useBillingData'
 import { ReturnPanel } from '../features/returns/ReturnPanel'
@@ -42,6 +43,8 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
   const [customer, setCustomer] = useState<CustomerDraft>(freshCustomer)
   const [pay, setPay] = useState<PayRow[]>(freshPay)
   const [rx, setRx] = useState<RxDraft>(freshRx)
+  const [rxFiles, setRxFiles] = useState<File[]>([])
+  const [photoWarning, setPhotoWarning] = useState('')
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)
   const [problem, setProblem] = useState<Problem | null>(null)
@@ -85,6 +88,8 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     setCustomer(freshCustomer())
     setPay(freshPay())
     setRx(freshRx())
+    setRxFiles([])
+    setPhotoWarning('')
     setProblem(null)
     setResult(null)
   }
@@ -135,6 +140,18 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
       return
     }
 
+    // The bill is saved. Now the prescription photos (a failure here never undoes the bill).
+    let warning = ''
+    if (needsRx && rxFiles.length > 0 && res.billId !== '') {
+      setSaving(true)
+      const up = await uploadPrescriptions(branchId, res.billId, rxFiles)
+      setSaving(false)
+      if (up.failed > 0) {
+        warning = `Bill સેવ થયું, પણ ${up.failed} ફોટો upload થયો નથી (${up.message}). Schedule Register માંથી ફરી ઉમેરો.`
+      }
+    }
+    setPhotoWarning(warning)
+
     const pickedName = customers.find((c) => c.id === customer.customerId)?.name
     const label = customer.mode === 'existing' ? (pickedName ?? 'Customer') : customer.mode === 'new' ? customer.newName.trim() : 'Walk-in'
     const merged = new Map<string, number>()
@@ -179,6 +196,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
       <BillResult
         bill={result}
         branchId={branchId}
+        warning={photoWarning}
         onNew={() => {
           resetAll()
         }}
@@ -219,7 +237,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
             <CustomerPicker customers={customers} value={customer} onChange={setCustomer} disabled={saving} />
 
-            {needsRx && <RxPanel doctors={doctors} value={rx} onChange={setRx} strict={rxStrict} disabled={saving} />}
+            {needsRx && <RxPanel doctors={doctors} value={rx} onChange={setRx} strict={rxStrict} files={rxFiles} onFiles={setRxFiles} disabled={saving} />}
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Totals">
               <dl className="space-y-1 text-sm">
