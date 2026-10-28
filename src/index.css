@@ -36,3 +36,13 @@ body {
     color: #000 !important;
   }
 }
+
+@media print {
+  .print-plain,
+  .print-plain * {
+    color: #000 !important;
+    background: transparent !important;
+    border-color: #888 !important;
+    box-shadow: none !important;
+  }
+}

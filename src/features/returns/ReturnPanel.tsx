@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { money } from '../billing/cart'
+import type { Paper } from '../billing/PrintBill'
 import { formatDate } from '../medicines/stock'
 import {
   createSalesReturn,
@@ -9,6 +10,7 @@ import {
   type BillHit,
 } from './api'
 import { parseReturnQty, refundFor, remainingQty, round2 } from './calc'
+import { PrintReturn, type ReturnReceipt } from './PrintReturn'
 
 type Method = 'cash' | 'credit'
 
@@ -17,11 +19,7 @@ interface Problem {
   technical?: string
 }
 
-interface Done {
-  returnNo: string
-  total: number
-  method: string
-}
+type Done = ReturnReceipt
 
 function ProblemBox({ p }: { p: Problem }) {
   return (
@@ -45,6 +43,7 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
   const busy = useRef(false)
   const [problem, setProblem] = useState<Problem | null>(null)
   const [done, setDone] = useState<Done | null>(null)
+  const [paper, setPaper] = useState<Paper>('thermal')
 
   async function search(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -119,22 +118,56 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
     busy.current = false
     setSaving(false)
     if (!res.ok) return setProblem({ message: res.message, technical: res.technical })
-    setDone(res.data)
+    setDone({
+      returnNo: res.data.returnNo,
+      billNo: bill.billNo,
+      customer: bill.customerName || 'Walk-in',
+      date: new Date().toISOString(),
+      reason: reason.trim(),
+      items: lines.filter((l) => l.q > 0).map((l) => ({ name: l.it.name, batchNo: l.it.batchNo, qty: l.q, refund: l.refund })),
+      total: res.data.total,
+      method: res.data.method,
+    })
   }
 
   if (done) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
-        <div role="status" className="rounded-xl border border-green-300 bg-green-50 p-4 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-          <p className="font-semibold">Return સેવ થયું. સ્ટોક પાછો વધી ગયો છે.</p>
-          <p className="text-2xl font-bold">{done.returnNo}</p>
-          <p className="mt-1">
-            Refund: <span className="font-bold">{money.format(done.total)}</span> ·{' '}
-            {done.method === 'credit' ? 'Customer ના balance માંથી ઘટાડ્યા' : 'Cash refund'}
-          </p>
+      <>
+        <style>{`@media print { @page { size: ${paper === 'a4' ? 'A4' : '80mm auto'}; margin: 4mm; } }`}</style>
+
+        <div className="mx-auto max-w-xl space-y-4 print:hidden">
+          <div role="status" className="rounded-xl border border-green-300 bg-green-50 p-4 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+            <p className="font-semibold">Return સેવ થયું. સ્ટોક પાછો વધી ગયો છે.</p>
+            <p className="text-2xl font-bold">{done.returnNo}</p>
+            <p className="mt-1">
+              Refund: <span className="font-bold">{money.format(done.total)}</span> ·{' '}
+              {done.method === 'credit' ? 'Customer ના balance માંથી ઘટાડ્યા' : 'Cash refund'}
+            </p>
+          </div>
+
+          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Print">
+            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Paper size">
+              {([
+                { v: 'thermal', label: 'Receipt (80mm)' },
+                { v: 'a4', label: 'A4' },
+              ] as const).map((o) => (
+                <button key={o.v} type="button" aria-pressed={paper === o.v} onClick={() => setPaper(o.v)}
+                  className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+                    paper === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
+                  }`}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn-primary" onClick={() => window.print()}>Return પાવતી print કરો</button>
+              <button type="button" className="btn-ghost" onClick={reset}>+ બીજું return</button>
+            </div>
+          </section>
         </div>
-        <button type="button" className="btn-primary" onClick={reset}>+ બીજું return</button>
-      </div>
+
+        <PrintReturn receipt={done} branchId={branchId} paper={paper} />
+      </>
     )
   }
 

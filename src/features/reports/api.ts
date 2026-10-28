@@ -28,6 +28,15 @@ export interface GstSummary {
   returns: GstRow // totals
 }
 
+export interface BranchRow {
+  id: string
+  name: string
+  bills: number
+  sales: number
+  returns: number
+  net: number
+}
+
 export type ReportResult<T> = { ok: true; data: T } | { ok: false; message: string; technical: string }
 
 function round2(x: number): number {
@@ -39,13 +48,13 @@ function failure<T>(err: { message: string; code?: string }): ReportResult<T> {
   return {
     ok: false,
     message: missing
-      ? 'Report function Supabase માં બનાવ્યું નથી. supabase/reports.sql ચલાવો.'
+      ? 'Report function Supabase માં બનાવ્યું નથી. supabase/reports.sql અને reports_v2.sql ચલાવો.'
       : 'Report લોડ થઈ શક્યો નથી. ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો.',
     technical: `${err.code ?? ''} ${err.message}`.trim(),
   }
 }
 
-export async function fetchDailySales(branchId: string, from: string, to: string): Promise<ReportResult<DailyRow[]>> {
+export async function fetchDailySales(branchId: string | null, from: string, to: string): Promise<ReportResult<DailyRow[]>> {
   try {
     const { data, error } = await supabase.rpc('report_daily_sales', { p_branch: branchId, p_from: from, p_to: to })
     if (error) return failure(error)
@@ -72,7 +81,7 @@ export async function fetchDailySales(branchId: string, from: string, to: string
 
 const zero = (rate: number): GstRow => ({ rate, taxable: 0, cgst: 0, sgst: 0, igst: 0, total: 0 })
 
-export async function fetchGstSummary(branchId: string, from: string, to: string): Promise<ReportResult<GstSummary>> {
+export async function fetchGstSummary(branchId: string | null, from: string, to: string): Promise<ReportResult<GstSummary>> {
   try {
     const { data, error } = await supabase.rpc('report_gst_summary', { p_branch: branchId, p_from: from, p_to: to })
     if (error) return failure(error)
@@ -106,6 +115,28 @@ export async function fetchGstSummary(branchId: string, from: string, to: string
         total: round2(s.total - r.total),
       }))
     return { ok: true, data: { net, sales, returns } }
+  } catch (e) {
+    return failure({ message: e instanceof Error ? e.message : String(e) })
+  }
+}
+
+export async function fetchBranchSales(from: string, to: string): Promise<ReportResult<BranchRow[]>> {
+  try {
+    const { data, error } = await supabase.rpc('report_branch_sales', { p_from: from, p_to: to })
+    if (error) return failure(error)
+    const out: BranchRow[] = []
+    for (const r of (data ?? []) as unknown[]) {
+      if (!isRecord(r) || typeof r.branch_id !== 'string' || typeof r.branch_name !== 'string') continue
+      out.push({
+        id: r.branch_id,
+        name: r.branch_name,
+        bills: toNum(r.bill_count) ?? 0,
+        sales: toNum(r.sales_total) ?? 0,
+        returns: toNum(r.returns_total) ?? 0,
+        net: toNum(r.net_total) ?? 0,
+      })
+    }
+    return { ok: true, data: out }
   } catch (e) {
     return failure({ message: e instanceof Error ? e.message : String(e) })
   }

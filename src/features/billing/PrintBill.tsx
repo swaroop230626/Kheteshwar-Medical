@@ -7,7 +7,7 @@ import type { BillSummary } from './BillResult'
 
 export type Paper = 'thermal' | 'a4'
 
-interface Shop {
+export interface Shop {
   name: string
   gstNo: string
   licence: string
@@ -18,7 +18,7 @@ interface Shop {
 const text = (v: unknown): string => (typeof v === 'string' ? v : '')
 
 // Shop details for the bill header. If anything is missing the header just shows less.
-function useShop(branchId: string): Shop | null {
+export function useShop(branchId: string): Shop | null {
   const [shop, setShop] = useState<Shop | null>(null)
   useEffect(() => {
     let cancelled = false
