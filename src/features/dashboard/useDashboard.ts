@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { fetchAll } from '../../lib/fetchAll'
 import { isRecord, toNum } from '../../lib/parse'
+import { fetchDues } from '../dues/api'
 import { fetchStockRows, type StockRow } from '../medicines/stock'
 
 // ---------- types ----------
@@ -19,6 +20,7 @@ export interface SalesSummary {
 export interface CreditSummary {
   total: number
   customersDue: number
+  over30: number | null // customers unpaid for 30+ days (null = dues.sql not run yet)
 }
 
 export interface ExpiryItem {
@@ -103,7 +105,13 @@ async function fetchCredit(branchId: string): Promise<CreditSummary> {
     paise += Math.round(bal * 100)
     if (bal > 0) customersDue += 1
   }
-  return { total: paise / 100, customersDue }
+  let over30: number | null = null
+  try {
+    over30 = (await fetchDues(branchId)).filter((d) => d.days >= 30).length
+  } catch {
+    over30 = null // the card still works without it
+  }
+  return { total: paise / 100, customersDue, over30 }
 }
 
 // Uses the same stock calculation as the Medicines page, so the numbers always match it.

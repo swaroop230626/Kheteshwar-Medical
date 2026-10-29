@@ -10,6 +10,7 @@ const NAV = [
   { to: '/purchases', label: 'Purchases', end: false },
   { to: '/billing', label: 'Billing', end: false },
   { to: '/customers', label: 'Customers', end: false },
+  { to: '/dues', label: 'બાકી યાદી', end: false, roles: ['owner', 'branch_manager', 'billing_staff', 'accountant'] },
   { to: '/reports', label: 'Reports', end: false, roles: ['owner', 'branch_manager', 'accountant'] },
   { to: '/register', label: 'Schedule Register', end: false, roles: ['owner', 'branch_manager', 'billing_staff', 'accountant'] },
   { to: '/admin', label: 'Admin', end: false, roles: ['owner'] },

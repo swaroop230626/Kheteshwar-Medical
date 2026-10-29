@@ -215,6 +215,17 @@ function DashboardInner({ branchName, branchId }: { branchName: string; branchId
             <>
               <Big>{money.format(credit.data.total)}</Big>
               <Sub>{credit.data.customersDue} customers ને બાકી</Sub>
+              {credit.data.over30 !== null && (
+                <Sub>
+                  <span className={`font-semibold ${credit.data.over30 > 0 ? 'text-red-700 dark:text-red-300' : ''}`}>30+ દિવસ: {credit.data.over30}</span>
+                </Sub>
+              )}
+              <Link
+                to="/dues"
+                className="mt-1 inline-flex min-h-11 items-center rounded-lg text-sm font-medium text-brand-strong underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:text-brand-bright"
+              >
+                બાકી યાદી જુઓ
+              </Link>
             </>
           )}
         </CardShell>

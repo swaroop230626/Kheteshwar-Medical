@@ -8,6 +8,7 @@ import { Admin } from './pages/Admin'
 import { Billing } from './pages/Billing'
 import { Customers } from './pages/Customers'
 import { Dashboard } from './pages/Dashboard'
+import { Dues } from './pages/Dues'
 import { Login } from './pages/Login'
 import { Medicines } from './pages/Medicines'
 import { Purchases } from './pages/Purchases'
@@ -97,6 +98,7 @@ export default function App() {
           <Route path="purchases" element={<Purchases />} />
           <Route path="billing" element={<Billing />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="dues" element={<Dues />} />
           <Route path="reports" element={<Reports />} />
           <Route path="register" element={<Register />} />
           <Route path="admin" element={<Admin />} />
