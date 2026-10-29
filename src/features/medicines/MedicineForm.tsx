@@ -1,4 +1,6 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { fetchMedicineBarcodes, linkBarcode, type BarcodeInfo } from '../barcode/api'
+import { BarcodeSection, type PendingBarcode } from '../barcode/BarcodeSection'
 import { createMedicine, updateMedicine, type MedicineDraft } from './create'
 
 const GST = ['0', '5', '12', '18']
@@ -40,7 +42,11 @@ interface Props {
 
 export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) {
   const start = initial ?? EMPTY
-  const editing = medicineId !== undefined
+  const [savedId, setSavedId] = useState<string | null>(medicineId ?? null) // set once the medicine exists
+  const editing = savedId !== null
+  const [existingCodes, setExistingCodes] = useState<BarcodeInfo[]>([])
+  const [codesKey, setCodesKey] = useState(0)
+  const [pending, setPending] = useState<PendingBarcode[]>([])
   const [name, setName] = useState(start.name)
   const [generic, setGeneric] = useState(start.genericName)
   const [maker, setMaker] = useState(start.manufacturer)
@@ -53,6 +59,19 @@ export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) 
   const [saving, setSaving] = useState(false)
   const busy = useRef(false)
   const [problem, setProblem] = useState<{ message: string; technical?: string } | null>(null)
+
+  useEffect(() => {
+    if (savedId === null) return
+    let cancelled = false
+    fetchMedicineBarcodes(savedId)
+      .then((c) => {
+        if (!cancelled) setExistingCodes(c)
+      })
+      .catch(() => undefined) // barcode table not created yet: the form still works
+    return () => {
+      cancelled = true
+    }
+  }, [savedId, codesKey])
 
   // keep an unusual saved value selectable instead of silently changing it
   const gstOptions = GST.includes(gst) ? GST : [...GST, gst]
@@ -85,10 +104,38 @@ export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) 
 
     busy.current = true
     setSaving(true)
-    const res = medicineId !== undefined ? await updateMedicine(medicineId, payload) : await createMedicine(payload)
+    const res = savedId !== null ? await updateMedicine(savedId, payload) : await createMedicine(payload)
+    if (!res.ok) {
+      busy.current = false
+      setSaving(false)
+      return setProblem({ message: res.message, technical: res.technical })
+    }
+    setSavedId(res.id === '' ? null : res.id)
+
+    // link the barcodes that were added in this form
+    const failed: string[] = []
+    const failedCodes = new Set<string>()
+    if (pending.length > 0) {
+      if (res.id === '') {
+        for (const p of pending) failedCodes.add(p.code)
+        failed.push('દવાનો id મળ્યો નથી')
+      } else {
+        for (const p of pending) {
+          const r = await linkBarcode(res.id, p.code, p.kind, p.units)
+          if (!r.ok) {
+            failedCodes.add(p.code)
+            failed.push(`${p.code}: ${r.message}`)
+          }
+        }
+      }
+    }
     busy.current = false
     setSaving(false)
-    if (!res.ok) return setProblem({ message: res.message, technical: res.technical })
+    if (failed.length > 0) {
+      setPending(pending.filter((p) => failedCodes.has(p.code)))
+      setCodesKey((k) => k + 1)
+      return setProblem({ message: `દવા સેવ થઈ, પણ આ barcode જોડાયા નથી: ${failed.join(' | ')}. સુધારીને ફરી સેવ કરો.` })
+    }
     onSaved()
   }
 
@@ -143,6 +190,14 @@ export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) 
             : 'અહીં batch ઉમેરાતો નથી. Batch અને stock Purchases માંથી આવે છે.'}
         </p>
       </section>
+
+      <BarcodeSection
+        existing={existingCodes}
+        pending={pending}
+        onPending={setPending}
+        onExistingChanged={() => setCodesKey((k) => k + 1)}
+        disabled={saving}
+      />
 
       {problem && (
         <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">

@@ -21,6 +21,10 @@ import {
 import { CustomerPicker } from '../features/billing/CustomerPicker'
 import { MedicineList, type Group } from '../features/billing/MedicineList'
 import { PaymentEditor } from '../features/billing/PaymentEditor'
+import { normalizeCode } from '../features/barcode/api'
+import { LinkBarcode } from '../features/barcode/LinkBarcode'
+import { ScanBar } from '../features/barcode/ScanBar'
+import { useBarcodes } from '../features/barcode/useBarcodes'
 import { RxPanel } from '../features/billing/RxPanel'
 import { uploadPrescriptions } from '../features/prescriptions/api'
 import { freshRx, isScheduled, isStrict, toPayload, validateRx, type RxDraft } from '../features/billing/rx'
@@ -37,6 +41,16 @@ interface Problem {
   technical?: string
 }
 
+// Puts `qty` of a batch into the cart (adds to the line if the batch is already there)
+function mergeLine(prev: CartLine[], b: SellableBatch, qty: number): CartLine[] {
+  const existing = prev.find((l) => l.batchId === b.id)
+  if (existing) {
+    const q = parseQty(existing.qty) ?? 0
+    return prev.map((l) => (l.key === existing.key ? { ...l, qty: String(q + qty) } : l))
+  }
+  return [...prev, { key: nextKey('line'), medicineId: b.medicineId, name: b.name, gstRate: b.gstRate, batchId: b.id, qty: String(qty) }]
+}
+
 function BillingInner({ branchId, branchName }: { branchId: string; branchName: string }) {
   const { batches, customers, doctors, state, reload } = useBillingData(branchId)
   const [lines, setLines] = useState<CartLine[]>([])
@@ -45,6 +59,9 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
   const [rx, setRx] = useState<RxDraft>(freshRx)
   const [rxFiles, setRxFiles] = useState<File[]>([])
   const [photoWarning, setPhotoWarning] = useState('')
+  const { byCode, medicines: barcodeMeds, state: barcodeState, reload: reloadBarcodes } = useBarcodes()
+  const [scanMsg, setScanMsg] = useState<string | null>(null)
+  const [unknownCode, setUnknownCode] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)
   const [problem, setProblem] = useState<Problem | null>(null)
@@ -73,14 +90,43 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
   function addBatch(b: SellableBatch) {
     setProblem(null)
-    setLines((prev) => {
-      const existing = prev.find((l) => l.batchId === b.id)
-      if (existing) {
-        const q = parseQty(existing.qty) ?? 0
-        return prev.map((l) => (l.key === existing.key ? { ...l, qty: String(q + 1) } : l))
-      }
-      return [...prev, { key: nextKey('line'), medicineId: b.medicineId, name: b.name, gstRate: b.gstRate, batchId: b.id, qty: '1' }]
-    })
+    setLines((prev) => mergeLine(prev, b, 1))
+  }
+
+  // Adds `units` of a medicine, earliest expiry first, moving on to the next batch when one runs out
+  function addUnits(medicineId: string, units: number): string {
+    const list = batchesByMedicine.get(medicineId)
+    if (!list || list.length === 0) return 'સ્ટોક નથી.'
+    let remaining = units
+    const take: { b: SellableBatch; qty: number }[] = []
+    for (const b of list) {
+      if (remaining <= 0) break
+      const room = b.qty - (parseQty(lines.find((l) => l.batchId === b.id)?.qty ?? '') ?? 0)
+      if (room <= 0) continue
+      const q = Math.min(room, remaining)
+      take.push({ b, qty: q })
+      remaining -= q
+    }
+    if (take.length > 0) setLines((prev) => take.reduce((acc, t) => mergeLine(acc, t.b, t.qty), prev))
+    return remaining > 0 ? `ફક્ત ${units - remaining} ઉમેર્યા, સ્ટોક પૂરતો નથી.` : ''
+  }
+
+  function handleScan(code: string): 'continue' | 'stop' {
+    setProblem(null)
+    if (barcodeState !== 'ready') {
+      setScanMsg('Barcode ની યાદી લોડ થઈ નથી. supabase/barcodes.sql ચલાવ્યું છે?')
+      return 'stop'
+    }
+    const info = byCode.get(normalizeCode(code))
+    if (!info) {
+      setUnknownCode(code)
+      setScanMsg(`નવો barcode: ${code}`)
+      return 'stop'
+    }
+    const name = barcodeMeds.find((m) => m.id === info.medicineId)?.name ?? 'દવા'
+    const warn = addUnits(info.medicineId, info.units)
+    setScanMsg(warn === '' ? `${name} ઉમેર્યું (${info.units} નંગ${info.kind === 'box' ? ', box' : ''}).` : `${name}: ${warn}`)
+    return 'continue'
   }
 
   function resetAll() {
@@ -90,6 +136,8 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     setRx(freshRx())
     setRxFiles([])
     setPhotoWarning('')
+    setScanMsg(null)
+    setUnknownCode(null)
     setProblem(null)
     setResult(null)
   }
@@ -173,6 +221,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
     setResult({
       billNo: res.billNo,
+      phone: customer.mode === 'existing' ? (customers.find((c) => c.id === customer.customerId)?.phone ?? '') : customer.mode === 'new' ? customer.newPhone.trim() : '',
       date: new Date().toISOString(),
       cgst: round2(cgst),
       sgst: round2(sgst),
@@ -221,7 +270,23 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
       {state === 'ready' && (
         <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
-          <MedicineList groups={groups} inCart={inCart} onAdd={addBatch} />
+          <div className="min-w-0 space-y-4">
+            <ScanBar onScan={handleScan} status={scanMsg} disabled={saving} />
+            {unknownCode && (
+              <LinkBarcode
+                code={unknownCode}
+                medicines={barcodeMeds}
+                onCancel={() => setUnknownCode(null)}
+                onLinked={(medicineId, _kind, units) => {
+                  setUnknownCode(null)
+                  reloadBarcodes()
+                  const warn = addUnits(medicineId, units)
+                  setScanMsg(warn === '' ? 'Barcode જોડાયો અને દવા ઉમેરી.' : `Barcode જોડાયો. ${warn}`)
+                }}
+              />
+            )}
+            <MedicineList groups={groups} inCart={inCart} onAdd={addBatch} />
+          </div>
 
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Cart ({lines.length})</h2>

@@ -24,7 +24,7 @@ export interface MedicineDraft {
   reorder: string
 }
 
-export type CreateResult = { ok: true } | { ok: false; message: string; technical: string }
+export type CreateResult = { ok: true; id: string } | { ok: false; message: string; technical: string }
 
 function translate(err: { message: string; code?: string }): string {
   const m = err.message
@@ -67,9 +67,9 @@ function params(m: NewMedicine) {
 
 export async function createMedicine(m: NewMedicine): Promise<CreateResult> {
   try {
-    const { error } = await supabase.rpc('create_medicine', params(m))
+    const { data, error } = await supabase.rpc('create_medicine', params(m))
     if (error) return { ok: false, message: translate(error), technical: `${error.code ?? ''} ${error.message}`.trim() }
-    return { ok: true }
+    return { ok: true, id: typeof data === 'string' ? data : '' }
   } catch (e) {
     return failure(e)
   }
@@ -79,7 +79,7 @@ export async function updateMedicine(id: string, m: NewMedicine): Promise<Create
   try {
     const { error } = await supabase.rpc('update_medicine', { p_id: id, ...params(m) })
     if (error) return { ok: false, message: translate(error), technical: `${error.code ?? ''} ${error.message}`.trim() }
-    return { ok: true }
+    return { ok: true, id }
   } catch (e) {
     return failure(e)
   }

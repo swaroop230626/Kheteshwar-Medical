@@ -1,5 +1,9 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { normalizeCode } from '../barcode/api'
+import { LinkBarcode } from '../barcode/LinkBarcode'
+import { ScanBar } from '../barcode/ScanBar'
+import { useBarcodes } from '../barcode/useBarcodes'
 import { batchKey, findExistingBatches, saveGrn, type MedicineOption } from './api'
 import {
   GST_OPTIONS,
@@ -57,6 +61,47 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
   const byId = useMemo(() => new Map(medicines.map((m) => [m.id, m])), [medicines])
   const totals = useMemo(() => sumTotals(draft.items), [draft.items])
   const today = todayISO()
+  const { byCode, state: barcodeState, reload: reloadBarcodes } = useBarcodes()
+  const [scanMsg, setScanMsg] = useState<string | null>(null)
+  const [unknownCode, setUnknownCode] = useState<string | null>(null)
+
+  // A scan puts the medicine in the list with its quantity; batch and expiry are filled in by hand
+  function addScanned(medicineId: string, units: number) {
+    const med = byId.get(medicineId)
+    setDraft((d) => {
+      const same = d.items.find((i) => i.medicineId === medicineId)
+      if (same) {
+        return { ...d, items: d.items.map((i) => (i.key === same.key ? { ...i, qty: String((parseNum(i.qty) ?? 0) + units) } : i)) }
+      }
+      const blank = d.items.find((i) => i.medicineId === '' && i.batchNo === '' && i.expiry === '' && i.qty === '' && i.rate === '' && i.mrp === '')
+      const base = blank ?? emptyItem()
+      const gstOk = med && med.gstRate !== null && (GST_OPTIONS as readonly number[]).includes(med.gstRate)
+      const filled: ItemDraft = {
+        ...base,
+        medicineId,
+        qty: String(units),
+        mrp: med && med.mrp !== null ? String(med.mrp) : '',
+        gst: gstOk && med && med.gstRate !== null ? String(med.gstRate) : base.gst,
+      }
+      return { ...d, items: blank ? d.items.map((i) => (i.key === blank.key ? filled : i)) : [...d.items, filled] }
+    })
+  }
+
+  function handleScan(code: string): 'continue' | 'stop' {
+    if (barcodeState !== 'ready') {
+      setScanMsg('Barcode ની યાદી લોડ થઈ નથી. supabase/barcodes.sql ચલાવ્યું છે?')
+      return 'stop'
+    }
+    const info = byCode.get(normalizeCode(code))
+    if (!info) {
+      setUnknownCode(code)
+      setScanMsg(`નવો barcode: ${code}`)
+      return 'stop'
+    }
+    addScanned(info.medicineId, info.units)
+    setScanMsg(`${byId.get(info.medicineId)?.name ?? 'દવા'} ઉમેર્યું (${info.units} નંગ). Batch અને expiry ભરો.`)
+    return 'continue'
+  }
 
   function patchItem(key: string, patch: Partial<ItemDraft>) {
     setDraft((d) => ({ ...d, items: d.items.map((i) => (i.key === key ? { ...i, ...patch } : i)) }))
@@ -161,6 +206,23 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
           <input id="invoiceDate" type="date" className="field" value={draft.invoiceDate} aria-invalid={Boolean(errors.invoiceDate)}
             onChange={(e) => setDraft({ ...draft, invoiceDate: e.target.value })} />
         </Field>
+      </section>
+
+      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Barcode scan">
+        <ScanBar onScan={handleScan} status={scanMsg} disabled={saving} />
+        {unknownCode && (
+          <LinkBarcode
+            code={unknownCode}
+            medicines={options}
+            onCancel={() => setUnknownCode(null)}
+            onLinked={(medicineId, _kind, units) => {
+              setUnknownCode(null)
+              reloadBarcodes()
+              addScanned(medicineId, units)
+              setScanMsg('Barcode જોડાયો અને દવા ઉમેરી. Batch અને expiry ભરો.')
+            }}
+          />
+        )}
       </section>
 
       <p className="text-sm text-slate-600 dark:text-slate-400">

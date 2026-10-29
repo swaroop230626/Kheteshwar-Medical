@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { formatDate } from '../medicines/stock'
 import { money } from './cart'
-import { PrintBill, type Paper } from './PrintBill'
+import { PrintBill, useShop, type Paper } from './PrintBill'
+import { WhatsAppShare } from './WhatsAppShare'
 
 export interface BillSummary {
   billNo: string
+  phone: string // customer's mobile, if known
   date: string // ISO time the bill was saved
   customer: string
   items: { name: string; batchNo: string; expiryDate: string; qty: number; mrp: number; gstRate: number; total: number }[]
@@ -18,6 +20,7 @@ export interface BillSummary {
 
 export function BillResult({ bill, branchId, warning, onNew }: { bill: BillSummary; branchId: string; warning?: string; onNew: () => void }) {
   const [paper, setPaper] = useState<Paper>('thermal')
+  const shop = useShop(branchId)
 
   return (
     <>
@@ -80,6 +83,7 @@ export function BillResult({ bill, branchId, warning, onNew }: { bill: BillSumma
             <button type="button" className="btn-ghost" onClick={onNew}>+ નવું Bill</button>
           </div>
         </section>
+        <WhatsAppShare bill={bill} shopName={shop?.name || 'Kheteshwar Medical'} shopPhone={shop?.phone ?? ''} />
       </div>
 
       <PrintBill bill={bill} branchId={branchId} paper={paper} />
