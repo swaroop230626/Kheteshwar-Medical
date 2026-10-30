@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth, type BilingualError } from '../auth/AuthContext'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 export function Login() {
   const { session, signIn } = useAuth()
@@ -21,7 +22,10 @@ export function Login() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center p-4">
+    <main className="relative grid min-h-dvh place-items-center p-4">
+      <div className="absolute right-3 top-3">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center gap-3">
           <span

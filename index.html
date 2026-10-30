@@ -8,6 +8,16 @@
     <meta name="theme-color" content="#0b7a66" />
     <meta name="description" content="Kheteshwar Medical: billing, stock and customers" />
     <meta name="apple-mobile-web-app-title" content="Medical" />
+    <script>
+      // set light/dark before the page paints, so there is no white flash
+      (function () {
+        try {
+          var t = localStorage.getItem('kheteshwar.theme')
+          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
     <title>Kheteshwar Medical</title>
   </head>
   <body>

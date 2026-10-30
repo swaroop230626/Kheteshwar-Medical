@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* "dark:" classes work when <html> has class "dark" (set by the theme button / device setting) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+html.dark {
+  color-scheme: dark;
+}
+
 @theme {
   --font-sans: Arial, "Noto Sans Gujarati", "Nirmala UI", Shruti, system-ui, sans-serif;
   --color-brand: #0b7a66;

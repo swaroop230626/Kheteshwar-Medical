@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { ROLE_LABELS } from '../types'
+import { ThemeToggle } from './ThemeToggle'
 
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
@@ -106,6 +107,8 @@ export function Layout() {
               {profile ? ` · ${ROLE_LABELS[profile.role]}` : ''}
             </p>
           </div>
+
+          <ThemeToggle />
 
           <button
             type="button"
