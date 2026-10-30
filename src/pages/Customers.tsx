@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { Skeleton } from '../features/customers/BalanceBadge'
 import { CustomerDetail } from '../features/customers/CustomerDetail'
 import { CustomerForm } from '../features/customers/CustomerForm'
@@ -38,17 +40,18 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
-        </div>
-        {canAdd && state === 'ready' && (
-          <button type="button" className="btn-primary" onClick={() => { setNotice(null); setView({ kind: 'new' }) }}>
-            + નવો customer
+      <PageHeader
+        icon="users"
+        title="Customers"
+        subtitle={branchName}
+        actions={
+          canAdd && state === 'ready' && (
+          <button type="button" className="btn-primary gap-2" onClick={() => { setNotice(null); setView({ kind: 'new' }) }}>
+            <Icon name="plus" /> નવો customer
           </button>
-        )}
-      </div>
+        )
+        }
+      />
 
       {notice && (
         <div role="status" className="mt-4 flex items-start justify-between gap-2 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">

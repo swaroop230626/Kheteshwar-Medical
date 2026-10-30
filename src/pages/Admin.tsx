@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { fetchBranchInfo, type BranchInfo } from '../features/admin/api'
 import { BranchesTab } from '../features/admin/BranchesTab'
 import { StaffTab } from '../features/admin/StaffTab'
@@ -39,8 +41,7 @@ function AdminInner({ selfId }: { selfId: string }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Admin</h1>
-      <p className="mt-1 text-slate-600 dark:text-slate-400">શાખાઓ અને staff (ફક્ત owner)</p>
+      <PageHeader icon="settings" title="Admin" subtitle="શાખાઓ અને staff (ફક્ત owner)" />
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="વિભાગ">
         {tabs.map((t) => (

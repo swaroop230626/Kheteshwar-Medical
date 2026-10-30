@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth, type BilingualError } from '../auth/AuthContext'
+import { Icon } from '../components/Icon'
 import { ThemeToggle } from '../components/ThemeToggle'
 
 export function Login() {
@@ -32,7 +33,7 @@ export function Login() {
             className="grid size-11 place-items-center rounded-xl bg-brand text-2xl font-bold text-white"
             aria-hidden="true"
           >
-            +
+            <Icon name="cross" className="size-6" />
           </span>
           <div>
             <h1 className="text-xl font-bold leading-tight">Kheteshwar Medical</h1>

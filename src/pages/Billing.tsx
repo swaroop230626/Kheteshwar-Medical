@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { createBill } from '../features/billing/api'
 import type { SellableBatch } from '../features/billing/api'
 import { BillResult, type BillSummary } from '../features/billing/BillResult'
@@ -255,8 +257,7 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Billing</h1>
-      <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
+      <PageHeader icon="receipt" title="Billing" subtitle={branchName} />
 
       {state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
 
@@ -350,17 +351,18 @@ export function Billing() {
 function BillingTabs({ branchId, branchName }: { branchId: string; branchName: string }) {
   const [tab, setTab] = useState<'bill' | 'return'>('bill')
   const tabs = [
-    { v: 'bill', label: 'નવું Bill' },
-    { v: 'return', label: 'Bill શોધો અને પરત કરો' },
+    { v: 'bill', label: 'નવું Bill', icon: 'receipt' },
+    { v: 'return', label: 'Bill શોધો અને પરત કરો', icon: 'return' },
   ] as const
   return (
     <div>
       <div className="mb-5 grid grid-cols-2 gap-2 sm:max-w-xl print:hidden" role="group" aria-label="Billing વિભાગ">
         {tabs.map((t) => (
           <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
               tab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
             }`}>
+            <Icon name={t.icon} />
             {t.label}
           </button>
         ))}

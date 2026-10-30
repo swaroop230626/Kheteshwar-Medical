@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { money } from '../features/billing/cart'
 import { formatDate } from '../features/medicines/stock'
 import { todayISO } from '../features/purchases/form'
@@ -408,8 +410,7 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
       </div>
 
       <div className="print:hidden">
-        <h1 className="text-2xl font-bold">Reports</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">{scopeLabel}</p>
+        <PageHeader icon="chart" title="Reports" subtitle={scopeLabel} />
 
         {canSwitch && (
           <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="Branch પસંદગી">
@@ -459,8 +460,8 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
 
         {ready && (
           <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Export">
-            <button type="button" className="btn-ghost" onClick={exportCsv}>Excel (CSV) ડાઉનલોડ</button>
-            <button type="button" className="btn-ghost" onClick={() => window.print()}>PDF / Print</button>
+            <button type="button" className="btn-ghost gap-2" onClick={exportCsv}><Icon name="download" />Excel (CSV) ડાઉનલોડ</button>
+            <button type="button" className="btn-ghost gap-2" onClick={() => window.print()}><Icon name="printer" />PDF / Print</button>
           </div>
         )}
         {ready && (

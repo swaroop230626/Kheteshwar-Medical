@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { formatDate } from '../features/medicines/stock'
 import { todayISO } from '../features/purchases/form'
 import {
@@ -226,8 +228,8 @@ function RegisterTab({ branchId, branchName, canAdd }: { branchId: string; branc
         </div>
         {state === 'ready' && !rangeError && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="btn-ghost" onClick={exportCsv}>Excel (CSV) ડાઉનલોડ</button>
-            <button type="button" className="btn-ghost" onClick={() => window.print()}>PDF / Print</button>
+            <button type="button" className="btn-ghost gap-2" onClick={exportCsv}><Icon name="download" />Excel (CSV) ડાઉનલોડ</button>
+            <button type="button" className="btn-ghost gap-2" onClick={() => window.print()}><Icon name="printer" />PDF / Print</button>
           </div>
         )}
       </div>
@@ -356,8 +358,7 @@ export function Register() {
   return (
     <div className="print-plain">
       <div className="print:hidden">
-        <h1 className="text-2xl font-bold">Schedule Register</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">{selected.name}</p>
+        <PageHeader icon="clipboard" title="Schedule Register" subtitle={selected.name} />
         <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="વિભાગ">
           {tabs.map((t) => (
             <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}

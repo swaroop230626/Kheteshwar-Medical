@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon } from '../components/Icon'
+import { PageHeader } from '../components/PageHeader'
 import { normalizePhone } from '../features/billing/WhatsAppShare'
 import { useShop } from '../features/billing/PrintBill'
 import { money } from '../features/billing/cart'
@@ -100,22 +102,25 @@ function DuesInner({ branchId, branchName }: { branchId: string; branchName: str
   }
 
   const action = (r: DueRow) => (
-    <button type="button" className={remindedToday(r.lastReminded) ? 'btn-ghost' : 'btn-primary'} onClick={() => remind(r)}>
+    <button type="button" className={`${remindedToday(r.lastReminded) ? 'btn-ghost' : 'btn-primary'} gap-2`} onClick={() => remind(r)}>
+      <Icon name="message" />
       {remindedToday(r.lastReminded) ? 'ફરી યાદ' : 'WhatsApp યાદ'}
     </button>
   )
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">બાકી યાદી</h1>
-          <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
-        </div>
-        <button type="button" className="btn-ghost" onClick={() => setKey((k) => k + 1)} disabled={state === 'loading'}>
-          {state === 'loading' ? 'લોડ થઈ રહ્યું છે…' : '↻ Refresh'}
+      <PageHeader
+        icon="wallet"
+        title="બાકી યાદી"
+        subtitle={branchName}
+        actions={
+          <button type="button" className="btn-ghost gap-2" onClick={() => setKey((k) => k + 1)} disabled={state === 'loading'}>
+          <Icon name="refresh" className={`size-5 ${state === 'loading' ? 'animate-spin motion-reduce:animate-none' : ''}`} />
+          {state === 'loading' ? 'લોડ થઈ રહ્યું છે…' : 'Refresh'}
         </button>
-      </div>
+        }
+      />
 
       {notice && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">{notice}</p>}
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '../../components/Icon'
 import { formatDate } from '../medicines/stock'
 import { money } from './cart'
 import type { BillSummary } from './BillResult'
@@ -71,7 +72,7 @@ export function WhatsAppShare({ bill, shopName, shopPhone }: Props) {
           onChange={(e) => setPhone(e.target.value)} />
         {error && <p role="alert" className="mt-1 text-sm text-red-700 dark:text-red-300">{error}</p>}
       </div>
-      <button type="button" className="btn-primary" onClick={send}>WhatsApp ખોલો</button>
+      <button type="button" className="btn-primary gap-2" onClick={send}><Icon name="message" />WhatsApp ખોલો</button>
       <p className="text-sm text-slate-600 dark:text-slate-400">
         WhatsApp ખૂલશે અને bill લખાયેલું હશે, તમારે ફક્ત Send દબાવવાનું. (આ સાદી રીત છે, automatic મોકલવા માટે WhatsApp Business API જોઈએ, જે paid છે.)
       </p>

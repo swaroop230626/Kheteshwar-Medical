@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
+import { Icon, type IconName } from '../components/Icon'
 import {
   useDashboard,
   type ExpiryItem,
@@ -17,28 +18,6 @@ const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR
 const MAX_ROWS = 5
 
 // ---------- small building blocks ----------
-
-const ICONS = {
-  receipt: 'M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2-3 2z M8 7h8 M8 11h8 M8 15h5',
-  box: 'M21 8l-9-5-9 5v8l9 5 9-5V8z M3 8l9 5 9-5 M12 13v8',
-  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2',
-  trend: 'M3 17l6-6 4 4 8-8 M14 7h7v7',
-  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8',
-  wallet: 'M3 7a2 2 0 0 1 2-2h14v4 M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8H5a2 2 0 0 1-2-2z M16 14h2',
-  pill: 'M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7l-10 10z M8.5 8.5l7 7',
-  chart: 'M3 3v18h18 M7 14v4 M12 9v9 M17 5v13',
-  truck: 'M1 3h15v13H1z M16 8h4l3 3v5h-7V8z M5.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M18.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
-} as const
-
-type IconName = keyof typeof ICONS
-
-function Icon({ name, className = 'size-5' }: { name: IconName; className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={ICONS[name]} />
-    </svg>
-  )
-}
 
 const TINTS = {
   brand: 'bg-brand-soft text-brand-strong dark:bg-brand/25 dark:text-brand-bright',
@@ -339,9 +318,10 @@ function DashboardInner({ branchName, branchId }: { branchName: string; branchId
             type="button"
             onClick={refresh}
             disabled={loading}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white/15 px-4 font-medium text-white hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white/15 px-4 font-medium text-white hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
           >
-            {loading ? 'લોડ થઈ રહ્યું છે…' : '↻ Refresh'}
+            <Icon name="refresh" className={`size-5 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`} />
+            {loading ? 'લોડ થઈ રહ્યું છે…' : 'Refresh'}
           </button>
         </div>
       </section>

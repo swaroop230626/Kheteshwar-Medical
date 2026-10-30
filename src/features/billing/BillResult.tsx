@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '../../components/Icon'
 import { formatDate } from '../medicines/stock'
 import { money } from './cart'
 import { PrintBill, useShop, type Paper } from './PrintBill'
@@ -79,8 +80,8 @@ export function BillResult({ bill, branchId, warning, onNew }: { bill: BillSumma
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn-primary" onClick={() => window.print()}>Print bill</button>
-            <button type="button" className="btn-ghost" onClick={onNew}>+ નવું Bill</button>
+            <button type="button" className="btn-primary gap-2" onClick={() => window.print()}><Icon name="printer" />Print bill</button>
+            <button type="button" className="btn-ghost gap-2" onClick={onNew}><Icon name="plus" />નવું Bill</button>
           </div>
         </section>
         <WhatsAppShare bill={bill} shopName={shop?.name || 'Kheteshwar Medical'} shopPhone={shop?.phone ?? ''} />

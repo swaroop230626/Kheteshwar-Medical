@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { Icon } from '../../components/Icon'
+import { PageHeader } from '../../components/PageHeader'
 import { money } from '../billing/cart'
 import type { Paper } from '../billing/PrintBill'
 import { formatDate } from '../medicines/stock'
@@ -173,14 +175,14 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Bill શોધો અને પરત કરો</h1>
-      <p className="mt-1 text-slate-600 dark:text-slate-400">{branchName}</p>
+      <PageHeader icon="return" title="Bill શોધો અને પરત કરો" subtitle={branchName} />
 
       <form onSubmit={(e) => void search(e)} className="mt-4 flex flex-col gap-2 sm:flex-row" role="search">
         <label htmlFor="ret-search" className="sr-only">Bill no</label>
         <input id="ret-search" className="field sm:max-w-sm" placeholder="Bill no (કે તેનો ભાગ)" value={term}
           onChange={(e) => setTerm(e.target.value)} />
-        <button type="submit" className="btn-primary" disabled={searching || term.trim() === ''}>
+        <button type="submit" className="btn-primary gap-2" disabled={searching || term.trim() === ''}>
+          <Icon name="search" />
           {searching ? 'શોધી રહ્યા છીએ…' : 'શોધો'}
         </button>
       </form>
