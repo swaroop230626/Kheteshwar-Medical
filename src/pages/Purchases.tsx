@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, LoadingBlock, Notice, SearchField } from '../components/ui'
 import { PurchaseForm } from '../features/purchases/PurchaseForm'
 import { PurchaseList } from '../features/purchases/PurchaseList'
 import { usePurchases } from '../features/purchases/usePurchases'
@@ -56,22 +57,15 @@ function PurchasesInner({ branchId, branchName }: { branchId: string; branchName
         }
       />
 
-      {notice && (
-        <div role="status" className="mt-4 flex items-start justify-between gap-2 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-          <p>{notice}</p>
-          <button type="button" className="btn-ghost min-w-11 border-0 px-0" aria-label="સંદેશ બંધ કરો" onClick={() => setNotice(null)}>✕</button>
-        </div>
-      )}
+      {notice && <Notice kind="success" className="mt-4" onClose={() => setNotice(null)}>{notice}</Notice>}
 
       <div className="mt-4">
-        <label htmlFor="pur-search" className="sr-only">Supplier અથવા invoice no શોધો</label>
-        <input id="pur-search" type="search" className="field" placeholder="Supplier અથવા invoice no શોધો"
-          value={query} onChange={(e) => setQuery(e.target.value)} />
+        <SearchField id="pur-search" label="Supplier અથવા invoice no શોધો" placeholder="Supplier અથવા invoice no શોધો" value={query} onChange={setQuery} />
       </div>
 
       <div className="mt-4">
         {state === 'loading' && (
-          <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>
+          <LoadingBlock />
         )}
 
         {state === 'error' && (
@@ -83,16 +77,11 @@ function PurchasesInner({ branchId, branchName }: { branchId: string; branchName
         )}
 
         {state === 'ready' && grns.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-            આ શાખામાં હજી કોઈ purchase નથી.
-          </p>
+          <EmptyState icon="truck" title="આ શાખામાં હજી કોઈ purchase નથી." />
         )}
 
         {state === 'ready' && grns.length > 0 && visible.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-            <p>શોધ મુજબ કંઈ મળ્યું નથી.</p>
-            <button type="button" className="btn-ghost mt-3" onClick={() => setQuery('')}>શોધ સાફ કરો</button>
-          </div>
+          <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button type="button" className="btn-ghost" onClick={() => setQuery('')}>શોધ સાફ કરો</button>} />
         )}
 
         {state === 'ready' && visible.length > 0 && <PurchaseList grns={visible} names={names} />}

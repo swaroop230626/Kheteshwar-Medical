@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, LoadingBlock, Tabs, type TabItem } from '../components/ui'
 import { money } from '../features/billing/cart'
 import { formatDate } from '../features/medicines/stock'
 import { todayISO } from '../features/purchases/form'
@@ -56,9 +57,7 @@ function Problem({ message, technical, onRetry }: { message: string; technical: 
 function DailyView({ rows }: { rows: DailyRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-        આ તારીખોમાં કોઈ વેચાણ નથી.
-      </p>
+      <EmptyState icon="chart" title="આ તારીખોમાં કોઈ વેચાણ નથી." />
     )
   }
   const totals = {
@@ -69,14 +68,19 @@ function DailyView({ rows }: { rows: DailyRow[] }) {
     <>
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="કુલ">
         {[
-          { l: 'કુલ વેચાણ', v: money.format(totals.sales) },
-          { l: 'Return', v: money.format(totals.returns) },
-          { l: 'Net વેચાણ', v: money.format(totals.net) },
-          { l: 'Bills', v: String(totals.bills) },
+          { l: 'કુલ વેચાણ', v: money.format(totals.sales), i: 'trend' as const },
+          { l: 'Return', v: money.format(totals.returns), i: 'return' as const },
+          { l: 'Net વેચાણ', v: money.format(totals.net), i: 'wallet' as const },
+          { l: 'Bills', v: String(totals.bills), i: 'receipt' as const },
         ].map((c) => (
-          <div key={c.l} className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-sm text-slate-600 dark:text-slate-400">{c.l}</p>
-            <p className="text-lg font-bold">{c.v}</p>
+          <div key={c.l} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong dark:bg-brand/25 dark:text-brand-bright">
+              <Icon name={c.i} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm text-slate-600 dark:text-slate-400">{c.l}</p>
+              <p className="truncate text-lg font-bold">{c.v}</p>
+            </div>
           </div>
         ))}
       </section>
@@ -158,9 +162,7 @@ function DailyView({ rows }: { rows: DailyRow[] }) {
 function GstView({ data }: { data: GstSummary }) {
   if (data.net.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-        આ તારીખોમાં કોઈ વેચાણ નથી.
-      </p>
+      <EmptyState icon="chart" title="આ તારીખોમાં કોઈ વેચાણ નથી." />
     )
   }
   const net = data.net.reduce(
@@ -239,9 +241,7 @@ function GstView({ data }: { data: GstSummary }) {
 function BranchView({ rows }: { rows: BranchRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-        કોઈ શાખા મળી નથી.
-      </p>
+      <EmptyState icon="store" title="કોઈ શાખા મળી નથી." />
     )
   }
   const t = rows.reduce(
@@ -413,19 +413,16 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
         <PageHeader icon="chart" title="Reports" subtitle={scopeLabel} />
 
         {canSwitch && (
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="Branch પસંદગી">
-            {([
-              { v: 'branch', label: 'આ શાખા' },
-              { v: 'all', label: 'બધી શાખાઓ' },
-            ] as const).map((o) => (
-              <button key={o.v} type="button" aria-pressed={scope === o.v} onClick={() => setScope(o.v)}
-                className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                  scope === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-                }`}>
-                {o.label}
-              </button>
-            ))}
-          </div>
+          <Tabs<'branch' | 'all'>
+            className="mt-4 sm:max-w-md"
+            label="Branch પસંદગી"
+            value={scope}
+            onChange={setScope}
+            items={[
+              { value: 'branch', label: 'આ શાખા', icon: 'store' },
+              { value: 'all', label: 'બધી શાખાઓ', icon: 'building' },
+            ]}
+          />
         )}
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:max-w-md">
@@ -447,16 +444,13 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
           ))}
         </div>
 
-        <div className={`mt-4 grid gap-2 sm:max-w-xl ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`} role="group" aria-label="Report પ્રકાર">
-          {tabs.map((t) => (
-            <button key={t.v} type="button" aria-pressed={activeTab === t.v} onClick={() => setTab(t.v)}
-              className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                activeTab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-              }`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <Tabs<Tab>
+          className="mt-4 sm:max-w-xl"
+          label="Report પ્રકાર"
+          value={activeTab}
+          onChange={setTab}
+          items={tabs.map((t): TabItem<Tab> => ({ value: t.v, label: t.label, icon: t.v === 'daily' ? 'chart' : t.v === 'gst' ? 'receipt' : 'store' }))}
+        />
 
         {ready && (
           <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Export">
@@ -474,7 +468,7 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
       <div className="mt-4">
         {rangeError && <p role="alert" className="text-red-700 dark:text-red-300">{rangeError}</p>}
         {!rangeError && state === 'loading' && (
-          <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>
+          <LoadingBlock />
         )}
         {!rangeError && state === 'error' && problem && (
           <Problem message={problem.message} technical={problem.technical} onRetry={() => setReloadKey((k) => k + 1)} />

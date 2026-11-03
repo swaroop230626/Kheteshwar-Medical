@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { Icon } from '../../components/Icon'
 import { formatDate } from '../medicines/stock'
 import type { Grn } from './api'
 
@@ -87,9 +88,14 @@ export function PurchaseList({ grns, names }: { grns: Grn[]; names: Map<string, 
           return (
             <li key={g.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="break-words font-semibold">{g.supplier}</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{g.grnNo}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300">
+                    <Icon name="truck" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="break-words font-semibold leading-tight">{g.supplier}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{g.grnNo}</p>
+                  </div>
                 </div>
                 <p className="shrink-0 text-lg font-bold">{money.format(g.total)}</p>
               </div>

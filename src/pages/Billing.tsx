@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { LoadingBlock, Notice, Tabs, type TabItem } from '../components/ui'
 import { createBill } from '../features/billing/api'
 import type { SellableBatch } from '../features/billing/api'
 import { BillResult, type BillSummary } from '../features/billing/BillResult'
@@ -259,14 +260,14 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
     <div>
       <PageHeader icon="receipt" title="Billing" subtitle={branchName} />
 
-      {state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
+      {state === 'loading' && <LoadingBlock />}
 
       {state === 'error' && (
-        <div role="alert" className="mt-4 rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <Notice kind="error" className="mt-4">
           <p className="font-semibold">ડેટા લોડ થઈ શક્યો નથી.</p>
-          <p className="text-sm">ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો.</p>
-          <button type="button" className="btn-primary mt-3" onClick={reload}>ફરી પ્રયાસ</button>
-        </div>
+          <p>ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો.</p>
+          <button type="button" className="btn-primary mt-3 gap-2" onClick={reload}><Icon name="refresh" />ફરી પ્રયાસ</button>
+        </Notice>
       )}
 
       {state === 'ready' && (
@@ -290,7 +291,11 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Cart ({lines.length})</h2>
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <Icon name="receipt" className="size-5 text-brand dark:text-brand-bright" />
+              Cart
+              <span className="rounded-full bg-brand-soft px-2 text-sm font-bold text-brand-strong dark:bg-brand/25 dark:text-brand-bright">{lines.length}</span>
+            </h2>
             <CartLines
               lines={lines}
               batchById={batchById}
@@ -305,24 +310,28 @@ function BillingInner({ branchId, branchName }: { branchId: string; branchName: 
 
             {needsRx && <RxPanel doctors={doctors} value={rx} onChange={setRx} strict={rxStrict} files={rxFiles} onFiles={setRxFiles} disabled={saving} />}
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Totals">
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-label="Totals">
               <dl className="space-y-1 text-sm">
-                <div className="flex justify-between"><dt>Subtotal</dt><dd>{money.format(totals.taxable)}</dd></div>
-                <div className="flex justify-between"><dt>GST</dt><dd>{money.format(totals.gst)}</dd></div>
-                <div className="flex justify-between text-xl font-bold"><dt>કુલ</dt><dd>{money.format(totals.total)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-600 dark:text-slate-400">Subtotal</dt><dd>{money.format(totals.taxable)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-600 dark:text-slate-400">GST</dt><dd>{money.format(totals.gst)}</dd></div>
               </dl>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-brand px-4 py-3 text-white">
+                <span className="font-semibold">કુલ</span>
+                <span className="text-2xl font-bold">{money.format(totals.total)}</span>
+              </div>
             </section>
 
             <PaymentEditor rows={pay} total={totals.total} onChange={setPay} disabled={saving} />
 
             {problem && (
-              <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              <Notice kind="error">
                 <p className="font-semibold">{problem.message}</p>
                 {problem.technical && <p className="mt-1 break-words font-mono text-xs">Technical: {problem.technical}</p>}
-              </div>
+              </Notice>
             )}
 
-            <button type="button" className="btn-primary w-full" disabled={saving || lines.length === 0} onClick={() => void save()}>
+            <button type="button" className="btn-primary min-h-14 w-full gap-2 text-lg" disabled={saving || lines.length === 0} onClick={() => void save()}>
+              {saving ? <span className="size-5 animate-spin rounded-full border-2 border-white border-t-transparent motion-reduce:animate-none" aria-hidden="true" /> : <Icon name="check" className="size-6" />}
               {saving ? 'સેવ થઈ રહ્યું છે…' : 'Bill સેવ કરો'}
             </button>
           </div>
@@ -356,17 +365,13 @@ function BillingTabs({ branchId, branchName }: { branchId: string; branchName: s
   ] as const
   return (
     <div>
-      <div className="mb-5 grid grid-cols-2 gap-2 sm:max-w-xl print:hidden" role="group" aria-label="Billing વિભાગ">
-        {tabs.map((t) => (
-          <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              tab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-            }`}>
-            <Icon name={t.icon} />
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs<'bill' | 'return'>
+        className="mb-5 sm:max-w-xl print:hidden"
+        label="Billing વિભાગ"
+        value={tab}
+        onChange={setTab}
+        items={tabs.map((t): TabItem<'bill' | 'return'> => ({ value: t.v, label: t.label, icon: t.icon }))}
+      />
       <div className={tab === 'bill' ? '' : 'hidden'}>
         <BillingInner branchId={branchId} branchName={branchName} />
       </div>

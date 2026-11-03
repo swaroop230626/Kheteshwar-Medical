@@ -1,11 +1,7 @@
+import { Icon } from '../../components/Icon'
+import { Tabs } from '../../components/ui'
 import type { CustomerOption } from './api'
 import { money, type CustomerDraft, type CustomerMode } from './cart'
-
-const MODES: { value: CustomerMode; label: string }[] = [
-  { value: 'walkin', label: 'Walk-in' },
-  { value: 'existing', label: 'હાલનો' },
-  { value: 'new', label: 'નવો' },
-]
 
 interface Props {
   customers: CustomerOption[]
@@ -18,37 +14,28 @@ export function CustomerPicker({ customers, value, onChange, disabled }: Props) 
   const picked = customers.find((c) => c.id === value.customerId)
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Customer">
-      <h2 className="font-semibold">Customer</h2>
-      <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-label="Customer પ્રકાર">
-        {MODES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            disabled={disabled}
-            aria-pressed={value.mode === m.value}
-            onClick={() => onChange({ ...value, mode: m.value })}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              value.mode === m.value
-                ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright'
-                : 'border-slate-300 dark:border-slate-700'
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-label="Customer">
+      <h2 className="flex items-center gap-2 font-semibold">
+        <Icon name="users" className="size-5 text-brand dark:text-brand-bright" />
+        Customer
+      </h2>
+      <Tabs<CustomerMode>
+        className="mt-2"
+        label="Customer પ્રકાર"
+        value={value.mode}
+        onChange={(mode) => !disabled && onChange({ ...value, mode })}
+        items={[
+          { value: 'walkin', label: 'Walk-in', icon: 'user' },
+          { value: 'existing', label: 'હાલનો', icon: 'users' },
+          { value: 'new', label: 'નવો', icon: 'plus' },
+        ]}
+      />
 
       {value.mode === 'existing' && (
         <div className="mt-3">
           <label htmlFor="cust-select" className="mb-1 block text-sm font-medium">Customer પસંદ કરો</label>
-          <select
-            id="cust-select"
-            className="field"
-            value={value.customerId}
-            disabled={disabled}
-            onChange={(e) => onChange({ ...value, customerId: e.target.value })}
-          >
+          <select id="cust-select" className="field" value={value.customerId} disabled={disabled}
+            onChange={(e) => onChange({ ...value, customerId: e.target.value })}>
             <option value="">— પસંદ કરો —</option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>
@@ -70,12 +57,12 @@ export function CustomerPicker({ customers, value, onChange, disabled }: Props) 
 
       {value.mode === 'new' && (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <label htmlFor="cust-name" className="mb-1 block text-sm font-medium">નામ</label>
             <input id="cust-name" className="field" value={value.newName} disabled={disabled}
               onChange={(e) => onChange({ ...value, newName: e.target.value })} />
           </div>
-          <div>
+          <div className="min-w-0">
             <label htmlFor="cust-phone" className="mb-1 block text-sm font-medium">Phone (વૈકલ્પિક)</label>
             <input id="cust-phone" inputMode="tel" className="field" value={value.newPhone} disabled={disabled}
               onChange={(e) => onChange({ ...value, newPhone: e.target.value })} />

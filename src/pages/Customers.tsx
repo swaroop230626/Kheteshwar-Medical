@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, Notice, SearchField, Tabs } from '../components/ui'
 import { Skeleton } from '../features/customers/BalanceBadge'
 import { CustomerDetail } from '../features/customers/CustomerDetail'
 import { CustomerForm } from '../features/customers/CustomerForm'
@@ -53,33 +54,23 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
         }
       />
 
-      {notice && (
-        <div role="status" className="mt-4 flex items-start justify-between gap-2 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-          <p>{notice}</p>
-          <button type="button" className="btn-ghost min-w-11 border-0 px-0" aria-label="સંદેશ બંધ કરો" onClick={() => setNotice(null)}>✕</button>
-        </div>
-      )}
+      {notice && <Notice kind="success" className="mt-4" onClose={() => setNotice(null)}>{notice}</Notice>}
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
         {/* Left: list (hidden on mobile while a detail or form is open) */}
         <div className={rightHasContent ? 'hidden lg:block' : ''}>
-          <label htmlFor="cust-search" className="sr-only">નામ અથવા phone શોધો</label>
-          <input id="cust-search" type="search" className="field" placeholder="નામ અથવા phone શોધો"
-            value={query} onChange={(e) => setQuery(e.target.value)} />
+          <SearchField id="cust-search" label="નામ અથવા phone શોધો" placeholder="નામ અથવા phone શોધો" value={query} onChange={setQuery} />
 
-          <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label="Balance ફિલ્ટર">
-            {[
-              { v: false, label: 'બધા' },
-              { v: true, label: 'બાકી છે' },
-            ].map((o) => (
-              <button key={o.label} type="button" aria-pressed={onlyDue === o.v} onClick={() => setOnlyDue(o.v)}
-                className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                  onlyDue === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-                }`}>
-                {o.label}
-              </button>
-            ))}
-          </div>
+          <Tabs<'all' | 'due'>
+            className="mt-3"
+            label="Balance ફિલ્ટર"
+            value={onlyDue ? 'due' : 'all'}
+            onChange={(v) => setOnlyDue(v === 'due')}
+            items={[
+              { value: 'all', label: 'બધા', icon: 'users' },
+              { value: 'due', label: 'બાકી છે', icon: 'wallet' },
+            ]}
+          />
 
           <div className="mt-4">
             {state === 'loading' && <Skeleton />}
@@ -93,16 +84,11 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
             )}
 
             {state === 'ready' && customers.length === 0 && (
-              <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-                હજી કોઈ customer નથી.
-              </p>
+              <EmptyState icon="users" title="હજી કોઈ customer નથી." />
             )}
 
             {state === 'ready' && customers.length > 0 && visible.length === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-                <p>શોધ મુજબ કંઈ મળ્યું નથી.</p>
-                <button type="button" className="btn-ghost mt-3" onClick={() => { setQuery(''); setOnlyDue(false) }}>ફિલ્ટર સાફ કરો</button>
-              </div>
+              <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button type="button" className="btn-ghost" onClick={() => { setQuery(''); setOnlyDue(false) }}>ફિલ્ટર સાફ કરો</button>} />
             )}
 
             {state === 'ready' && visible.length > 0 && (
@@ -138,9 +124,7 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
           )}
 
           {view.kind === 'none' && (
-            <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-              વિગત જોવા માટે customer પસંદ કરો.
-            </p>
+            <EmptyState icon="users" title="વિગત જોવા માટે customer પસંદ કરો." />
           )}
         </div>
       </div>

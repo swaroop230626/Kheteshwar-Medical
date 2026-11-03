@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Icon } from '../../components/Icon'
+import { Avatar } from '../../components/ui'
 import { ROLE_LABELS, type Role } from '../../types'
 import { createStaff, fetchStaff, setStaffActive, type BranchInfo, type StaffRow } from './api'
 
@@ -151,8 +153,8 @@ export function StaffTab({ branches, selfId }: { branches: BranchInfo[]; selfId:
 
   return (
     <div>
-      <button type="button" className="btn-primary" onClick={() => { setNotice(null); setAdding(true) }} disabled={branches.length === 0}>
-        + નવો staff
+      <button type="button" className="btn-primary gap-2" onClick={() => { setNotice(null); setAdding(true) }} disabled={branches.length === 0}>
+        <Icon name="plus" />નવો staff
       </button>
 
       {notice && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">{notice}</p>}
@@ -171,7 +173,9 @@ export function StaffTab({ branches, selfId }: { branches: BranchInfo[]; selfId:
             {staff.map((s) => (
               <li key={s.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 break-words font-semibold">{s.fullName}{s.id === selfId && ' (તમે)'}</p>
+                  <p className="flex min-w-0 items-center gap-3 break-words font-semibold">
+                    <Avatar name={s.fullName} />
+                    {s.fullName}{s.id === selfId && ' (તમે)'}</p>
                   <span className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-bold ${s.active ? 'bg-green-100 text-green-900 dark:bg-green-950 dark:text-green-200' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}>
                     {s.active ? 'ચાલુ' : 'બંધ'}
                   </span>

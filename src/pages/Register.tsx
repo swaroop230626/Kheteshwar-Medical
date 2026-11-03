@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, LoadingBlock, Tabs, type TabItem } from '../components/ui'
 import { formatDate } from '../features/medicines/stock'
 import { todayISO } from '../features/purchases/form'
 import {
@@ -59,9 +60,7 @@ function RegisterView({ rows, branchId, canAdd, onChanged }: { rows: RegisterRow
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-        આ તારીખોમાં Schedule H/H1/X નું કોઈ વેચાણ નથી.
-      </p>
+      <EmptyState icon="clipboard" title="આ તારીખોમાં Schedule H/H1/X નું કોઈ વેચાણ નથી." />
     )
   }
 
@@ -236,7 +235,7 @@ function RegisterTab({ branchId, branchName, canAdd }: { branchId: string; branc
 
       <div className="mt-4">
         {rangeError && <p role="alert" className="text-red-700 dark:text-red-300">{rangeError}</p>}
-        {!rangeError && state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
+        {!rangeError && state === 'loading' && <LoadingBlock />}
         {!rangeError && state === 'error' && problem && <ProblemBox p={problem} onRetry={() => setReloadKey((k) => k + 1)} />}
         {!rangeError && state === 'ready' && <RegisterView rows={visible} branchId={branchId} canAdd={canAdd} onChanged={() => setReloadKey((k) => k + 1)} />}
       </div>
@@ -313,18 +312,18 @@ function DoctorsTab({ canAdd }: { canAdd: boolean }) {
       )}
 
       <div>
-        {state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
+        {state === 'loading' && <LoadingBlock />}
         {state === 'error' && (
           <ProblemBox p={{ message: 'Doctors લોડ થયા નથી. supabase/schedule_register.sql ચલાવ્યું છે?', technical: 'fetchDoctors failed' }} onRetry={() => setReloadKey((k) => k + 1)} />
         )}
         {state === 'ready' && doctors.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">હજી કોઈ doctor નથી.</p>
+          <EmptyState icon="stethoscope" title="હજી કોઈ doctor નથી." />
         )}
         {state === 'ready' && doctors.length > 0 && (
           <ul className="space-y-2">
             {doctors.map((d) => (
               <li key={d.id} className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                <p className="break-words font-semibold">{d.name}</p>
+                <p className="flex items-center gap-3 break-words font-semibold"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong dark:bg-brand/25 dark:text-brand-bright"><Icon name="stethoscope" /></span>{d.name}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   {d.regNo ? `Reg ${d.regNo}` : 'Registration no નથી'}
                   {d.phone && ` · ${d.phone}`}
@@ -359,16 +358,13 @@ export function Register() {
     <div className="print-plain">
       <div className="print:hidden">
         <PageHeader icon="clipboard" title="Schedule Register" subtitle={selected.name} />
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="વિભાગ">
-          {tabs.map((t) => (
-            <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => setTab(t.v)}
-              className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                tab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-              }`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <Tabs<Tab>
+          className="mt-4 sm:max-w-md"
+          label="વિભાગ"
+          value={tab}
+          onChange={setTab}
+          items={tabs.map((t): TabItem<Tab> => ({ value: t.v, label: t.label, icon: t.v === 'register' ? 'clipboard' : 'stethoscope' }))}
+        />
       </div>
       <div className="mt-4">
         {tab === 'register' ? (

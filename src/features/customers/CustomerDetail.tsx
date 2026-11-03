@@ -1,4 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { Icon } from '../../components/Icon'
+import { Avatar, Notice } from '../../components/ui'
 import { recordPayment, type Customer, type LedgerEntry } from './api'
 import { BalanceBadge, Skeleton, money } from './BalanceBadge'
 import { useLedger } from './hooks'
@@ -19,8 +21,11 @@ function formatWhen(iso: string): string {
 function LedgerRow({ e }: { e: LedgerEntry }) {
   const isDebit = e.debit > 0
   return (
-    <li className="flex items-start justify-between gap-3 py-3 text-sm">
-      <div className="min-w-0">
+    <li className="flex items-start gap-3 py-3 text-sm">
+      <span className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-full ${isDebit ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300' : 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'}`} aria-hidden="true">
+        <Icon name={isDebit ? 'arrowUp' : 'arrowDown'} className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
         <p className="font-medium">
           {TYPE_LABELS[e.type] ?? e.type}
           {e.method && <span className="text-slate-600 dark:text-slate-400"> · {e.method.toUpperCase()}</span>}
@@ -84,14 +89,20 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
     <div className="space-y-4">
       <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="break-words text-xl font-bold">{customer.name}</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {customer.phone || 'Phone નથી'}
-              {customer.address && ` · ${customer.address}`}
-            </p>
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar name={customer.name} className="size-12 text-base" />
+            <div className="min-w-0">
+              <h2 className="break-words text-xl font-bold leading-tight">{customer.name}</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {customer.phone || 'Phone નથી'}
+                {customer.address && ` · ${customer.address}`}
+              </p>
+            </div>
           </div>
-          <button type="button" className="btn-ghost lg:hidden" onClick={onClose}>← પાછા</button>
+          <button type="button" className="btn-ghost gap-2 lg:hidden" onClick={onClose}>
+            <Icon name="arrowLeft" />
+            પાછા
+          </button>
         </div>
         <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
           <div>
@@ -107,7 +118,7 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
 
       {canPay && customer.balance > 0 && (
         <form onSubmit={submit} noValidate className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <h3 className="font-semibold">નવી payment</h3>
+          <h3 className="flex items-center gap-2 font-semibold"><Icon name="banknote" className="size-5 text-brand dark:text-brand-bright" />નવી payment</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="p-amt" className="mb-1 block text-sm font-medium">રકમ (₹)</label>
@@ -144,18 +155,14 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
         </form>
       )}
 
-      {notice && (
-        <p role="status" className="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-          {notice}
-        </p>
-      )}
+      {notice && <Notice kind="success">{notice}</Notice>}
 
       {canPay && customer.balance <= 0 && (
         <p className="text-sm text-slate-600 dark:text-slate-400">કોઈ બાકી રકમ નથી, એટલે payment લેવાની જરૂર નથી.</p>
       )}
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="font-semibold">Ledger</h3>
+        <h3 className="flex items-center gap-2 font-semibold"><Icon name="clipboard" className="size-5 text-brand dark:text-brand-bright" />Ledger</h3>
         {state === 'loading' && <div className="mt-3"><Skeleton rows={3} /></div>}
         {state === 'error' && (
           <div role="alert" className="mt-3 text-sm text-red-800 dark:text-red-300">

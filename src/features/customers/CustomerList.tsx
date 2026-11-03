@@ -1,3 +1,5 @@
+import { Avatar } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import type { Customer } from './api'
 import { BalanceBadge, money } from './BalanceBadge'
 
@@ -16,17 +18,21 @@ export function CustomerList({ customers, selectedId, onSelect }: Props) {
             type="button"
             onClick={() => onSelect(c.id)}
             aria-current={c.id === selectedId}
-            className={`block min-h-11 w-full rounded-xl border bg-white p-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:bg-slate-900 ${
-              c.id === selectedId ? 'border-brand' : 'border-slate-200 hover:border-brand dark:border-slate-800'
+            className={`flex min-h-16 w-full items-center gap-3 rounded-2xl border bg-white p-3 text-left shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:bg-slate-900 ${
+              c.id === selectedId ? 'border-brand ring-1 ring-brand' : 'border-slate-200 hover:border-brand dark:border-slate-800'
             }`}
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 break-words font-semibold">{c.name}</p>
+            <Avatar name={c.name} />
+            <span className="min-w-0 flex-1">
+              <span className="block break-words font-semibold leading-tight">{c.name}</span>
+              <span className="block truncate text-sm text-slate-600 dark:text-slate-400">
+                {c.phone || 'Phone નથી'} · Limit {money.format(c.creditLimit)}
+              </span>
+            </span>
+            <span className="flex shrink-0 flex-col items-end gap-1">
               <BalanceBadge balance={c.balance} />
-            </div>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              {c.phone || 'Phone નથી'} · Credit limit {money.format(c.creditLimit)}
-            </p>
+            </span>
+            <Icon name="chevronRight" className="size-5 shrink-0 text-slate-500 dark:text-slate-400" />
           </button>
         </li>
       ))}

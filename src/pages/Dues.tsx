@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, LoadingBlock, Notice, SearchField, Tabs, type TabItem } from '../components/ui'
 import { normalizePhone } from '../features/billing/WhatsAppShare'
 import { useShop } from '../features/billing/PrintBill'
 import { money } from '../features/billing/cart'
@@ -122,26 +123,22 @@ function DuesInner({ branchId, branchName }: { branchId: string; branchName: str
         }
       />
 
-      {notice && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">{notice}</p>}
+      {notice && <Notice kind="success" className="mt-4">{notice}</Notice>}
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:max-w-3xl" role="group" aria-label="કેટલા દિવસથી બાકી">
-        {FILTERS.map((f, i) => (
-          <button key={f.min} type="button" aria-pressed={min === f.min} onClick={() => setMin(f.min)}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              min === f.min ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-            }`}>
-            {f.label} ({counts[i]})
-          </button>
-        ))}
-      </div>
+      <Tabs<string>
+        className="mt-4 sm:max-w-3xl"
+        label="કેટલા દિવસથી બાકી"
+        value={String(min)}
+        onChange={(v) => setMin(Number(v) as Min)}
+        items={FILTERS.map((f, i): TabItem<string> => ({ value: String(f.min), label: f.label, badge: counts[i] }))}
+      />
 
       <div className="mt-3 sm:max-w-md">
-        <label htmlFor="due-q" className="sr-only">નામ અથવા phone શોધો</label>
-        <input id="due-q" type="search" className="field" placeholder="નામ અથવા phone શોધો" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <SearchField id="due-q" label="નામ અથવા phone શોધો" placeholder="નામ અથવા phone શોધો" value={query} onChange={setQuery} />
       </div>
 
       <div className="mt-4">
-        {state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
+        {state === 'loading' && <LoadingBlock />}
 
         {state === 'error' && (
           <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
@@ -152,11 +149,11 @@ function DuesInner({ branchId, branchName }: { branchId: string; branchName: str
         )}
 
         {state === 'ready' && rows.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">કોઈનું બાકી નથી.</p>
+          <EmptyState icon="check" title="કોઈનું બાકી નથી." />
         )}
 
         {state === 'ready' && rows.length > 0 && visible.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">આ પસંદગીમાં કોઈ નથી.</p>
+          <EmptyState icon="search" title="આ પસંદગીમાં કોઈ નથી." />
         )}
 
         {state === 'ready' && visible.length > 0 && (

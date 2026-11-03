@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
-import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { LoadingBlock, Notice, Tabs, type TabItem } from '../components/ui'
 import { fetchBranchInfo, type BranchInfo } from '../features/admin/api'
 import { BranchesTab } from '../features/admin/BranchesTab'
 import { StaffTab } from '../features/admin/StaffTab'
@@ -43,21 +43,21 @@ function AdminInner({ selfId }: { selfId: string }) {
     <div>
       <PageHeader icon="settings" title="Admin" subtitle="શાખાઓ અને staff (ફક્ત owner)" />
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md" role="group" aria-label="વિભાગ">
-        {tabs.map((t) => (
-          <button key={t.v} type="button" aria-pressed={tab === t.v} onClick={() => { setTab(t.v); setNotice(null) }}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              tab === t.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-            }`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs<Tab>
+        className="mt-4 sm:max-w-md"
+        label="વિભાગ"
+        value={tab}
+        onChange={(v) => {
+          setTab(v)
+          setNotice(null)
+        }}
+        items={tabs.map((t): TabItem<Tab> => ({ value: t.v, label: t.label, icon: t.v === 'branches' ? 'building' : 'users' }))}
+      />
 
-      {notice && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">{notice}</p>}
+      {notice && <Notice kind="success" className="mt-4">{notice}</Notice>}
 
       <div className="mt-4">
-        {state === 'loading' && <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">લોડ થઈ રહ્યું છે…</p>}
+        {state === 'loading' && <LoadingBlock />}
         {state === 'error' && (
           <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
             <p className="font-semibold">લોડ થઈ શક્યું નથી.</p>

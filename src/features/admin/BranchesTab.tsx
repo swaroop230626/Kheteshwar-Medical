@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { Icon } from '../../components/Icon'
 import { createBranch, updateBranch, type BranchInfo } from './api'
 
 interface Problem {
@@ -109,12 +110,15 @@ export function BranchesTab({ branches, onChanged }: { branches: BranchInfo[]; o
 
   return (
     <div>
-      <button type="button" className="btn-primary" onClick={() => setMode({ kind: 'new' })}>+ નવી શાખા</button>
+      <button type="button" className="btn-primary gap-2" onClick={() => setMode({ kind: 'new' })}><Icon name="plus" />નવી શાખા</button>
       <ul className="mt-4 space-y-3">
         {branches.map((b) => (
           <li key={b.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 break-words text-lg font-semibold">{b.name}</p>
+              <p className="flex min-w-0 items-center gap-3 break-words text-lg font-semibold">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong dark:bg-brand/25 dark:text-brand-bright"><Icon name="store" /></span>
+                {b.name}
+              </p>
               <span className="shrink-0 rounded-md bg-brand-soft px-2 py-0.5 text-sm font-semibold text-brand-strong dark:bg-slate-800 dark:text-brand-bright">{b.billPrefix}</span>
             </div>
             <dl className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
@@ -123,7 +127,7 @@ export function BranchesTab({ branches, onChanged }: { branches: BranchInfo[]; o
               <div><dt className="inline text-slate-600 dark:text-slate-400">Phone: </dt><dd className="inline">{b.phone || '—'}</dd></div>
               <div className="sm:col-span-2"><dt className="inline text-slate-600 dark:text-slate-400">સરનામું: </dt><dd className="inline break-words">{b.address || '—'}</dd></div>
             </dl>
-            <button type="button" className="btn-ghost mt-3" onClick={() => setMode({ kind: 'edit', branch: b })}>સુધારો</button>
+            <button type="button" className="btn-ghost mt-3 gap-2" onClick={() => setMode({ kind: 'edit', branch: b })}><Icon name="edit" />સુધારો</button>
           </li>
         ))}
       </ul>

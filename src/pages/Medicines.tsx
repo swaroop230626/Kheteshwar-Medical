@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useBranch } from '../branch/BranchContext'
 import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
+import { EmptyState, LoadingBlock, Notice, SearchField } from '../components/ui'
 import { fetchMedicine, type MedicineDraft } from '../features/medicines/create'
 import { MedicineForm } from '../features/medicines/MedicineForm'
 import { STATUS_META, StatusBadges } from '../features/medicines/StatusBadge'
@@ -139,26 +140,11 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
         }
       />
 
-      {notice && (
-        <div role="status" className="mt-4 flex items-start justify-between gap-2 rounded-lg border border-green-300 bg-green-50 p-3 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-          <p>{notice}</p>
-          <button type="button" className="btn-ghost min-w-11 border-0 px-0" aria-label="સંદેશ બંધ કરો" onClick={() => setNotice(null)}>✕</button>
-        </div>
-      )}
+      {notice && <Notice kind="success" className="mt-4" onClose={() => setNotice(null)}>{notice}</Notice>}
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <div className="flex-1">
-          <label htmlFor="med-search" className="sr-only">
-            નામ અથવા batch શોધો
-          </label>
-          <input
-            id="med-search"
-            type="search"
-            className="field"
-            placeholder="નામ અથવા batch શોધો"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          <SearchField id="med-search" label="નામ અથવા batch શોધો" placeholder="નામ અથવા batch શોધો" value={query} onChange={setQuery} />
         </div>
         <div className="sm:w-52">
           <label htmlFor="med-filter" className="sr-only">
@@ -181,9 +167,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
 
       <div className="mt-4">
         {state === 'loading' && (
-          <p role="status" className="py-10 text-center text-slate-600 dark:text-slate-400">
-            લોડ થઈ રહ્યું છે…
-          </p>
+          <LoadingBlock />
         )}
 
         {state === 'error' && (
@@ -197,25 +181,20 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
         )}
 
         {state === 'ready' && rows.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-            આ શાખામાં હજી કોઈ stock નથી.
-          </p>
+          <EmptyState icon="box" title="આ શાખામાં હજી કોઈ stock નથી." />
         )}
 
         {state === 'ready' && rows.length > 0 && visible.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-slate-700 dark:text-slate-400">
-            <p>શોધ મુજબ કંઈ મળ્યું નથી.</p>
-            <button
+          <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button
               type="button"
-              className="btn-ghost mt-3"
+              className="btn-ghost"
               onClick={() => {
                 setQuery('')
                 setFilter('all')
               }}
             >
               ફિલ્ટર સાફ કરો
-            </button>
-          </div>
+            </button>} />
         )}
 
         {state === 'ready' && visible.length > 0 && (
