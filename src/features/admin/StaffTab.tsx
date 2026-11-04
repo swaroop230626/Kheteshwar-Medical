@@ -55,7 +55,7 @@ function StaffForm({ branches, onCancel, onSaved }: { branches: BranchInfo[]; on
     <form onSubmit={(e) => void submit(e)} noValidate className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">નવો staff</h2>
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>રદ કરો</button>
+        <button type="button" className="btn-ghost gap-2" onClick={onCancel} disabled={saving}><Icon name="close" />રદ કરો</button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="min-w-0">
@@ -95,7 +95,7 @@ function StaffForm({ branches, onCancel, onSaved }: { branches: BranchInfo[]; on
         તે પોતાની શાખાનો જ data જોઈ શકશે. પાસવર્ડ ફક્ત હમણાં દેખાય છે, પછી જોઈ શકાશે નહીં.
       </p>
       {problem && <ProblemBox p={problem} />}
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>{saving ? 'બનાવી રહ્યા છીએ…' : 'Staff બનાવો'}</button>
+      <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}><Icon name="check" />{saving ? 'બનાવી રહ્યા છીએ…' : 'Staff બનાવો'}</button>
     </form>
   )
 }
@@ -165,7 +165,7 @@ export function StaffTab({ branches, selfId }: { branches: BranchInfo[]; selfId:
         {state === 'error' && (
           <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
             <p className="font-semibold">Staff ની યાદી લોડ થઈ નથી.</p>
-            <button type="button" className="btn-primary mt-3" onClick={() => setReloadKey((k) => k + 1)}>ફરી પ્રયાસ</button>
+            <button type="button" className="btn-primary gap-2 mt-3" onClick={() => setReloadKey((k) => k + 1)}><Icon name="refresh" />ફરી પ્રયાસ</button>
           </div>
         )}
         {state === 'ready' && (
@@ -186,7 +186,8 @@ export function StaffTab({ branches, selfId }: { branches: BranchInfo[]; selfId:
                   {s.phone && ` · ${s.phone}`}
                 </p>
                 {s.id !== selfId && (
-                  <button type="button" className="btn-ghost mt-3" disabled={busyId !== null} onClick={() => void toggle(s)}>
+                  <button type="button" className="btn-ghost gap-2 mt-3" disabled={busyId !== null} onClick={() => void toggle(s)}>
+                    <Icon name={s.active ? 'lock' : 'check'} />
                     {busyId === s.id ? '…' : s.active ? 'બંધ કરો' : 'ફરી ચાલુ કરો'}
                   </button>
                 )}

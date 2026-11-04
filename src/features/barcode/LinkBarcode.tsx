@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { linkBarcode, type BarcodeKind, type MedicineName } from './api'
+import { Tabs } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 
 interface Props {
   code: string
@@ -61,19 +63,17 @@ export function LinkBarcode({ code, medicines, onLinked, onCancel }: Props) {
         {medicines.length === 0 && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">પહેલાં Medicines માં દવા ઉમેરો.</p>}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label="Barcode પ્રકાર">
-        {([
-          { v: 'single', label: 'એક નંગ / strip' },
-          { v: 'box', label: 'આખું box' },
-        ] as const).map((o) => (
-          <button key={o.v} type="button" disabled={saving} aria-pressed={kind === o.v} onClick={() => setKind(o.v)}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              kind === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900'
-            }`}>
-            {o.label}
-          </button>
-        ))}
-      </div>
+      <Tabs<BarcodeKind>
+        className="mt-3"
+        label="Barcode પ્રકાર"
+        value={kind}
+        onChange={setKind}
+        disabled={saving}
+        items={[
+          { value: 'single', label: 'એક નંગ / strip', icon: 'pill' },
+          { value: 'box', label: 'આખું box', icon: 'box' },
+        ]}
+      />
       {kind === 'box' && (
         <div className="mt-3 max-w-xs">
           <label htmlFor="lb-units" className="mb-1 block text-sm font-medium">Box માં કેટલા નંગ (strip)?</label>
@@ -89,8 +89,8 @@ export function LinkBarcode({ code, medicines, onLinked, onCancel }: Props) {
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn-primary" disabled={saving} onClick={() => void save()}>{saving ? 'જોડી રહ્યા છીએ…' : 'જોડો'}</button>
-        <button type="button" className="btn-ghost" disabled={saving} onClick={onCancel}>રદ કરો</button>
+        <button type="button" className="btn-primary gap-2" disabled={saving} onClick={() => void save()}><Icon name="plus" />{saving ? 'જોડી રહ્યા છીએ…' : 'જોડો'}</button>
+        <button type="button" className="btn-ghost gap-2" disabled={saving} onClick={onCancel}><Icon name="close" />રદ કરો</button>
       </div>
     </section>
   )

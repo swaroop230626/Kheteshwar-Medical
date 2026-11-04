@@ -1,4 +1,5 @@
 import { MAX_PHOTOS } from './api'
+import { Icon } from '../../components/Icon'
 
 interface Props {
   files: File[]
@@ -30,7 +31,7 @@ export function PhotoPicker({ files, onChange, disabled }: Props) {
             <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-1 text-sm dark:bg-slate-800">
               <span className="min-w-0 break-all">{f.name}</span>
               <button type="button" className="btn-ghost min-w-11 border-0 px-0" disabled={disabled}
-                aria-label={`${f.name} દૂર કરો`} onClick={() => onChange(files.filter((_, j) => j !== i))}>✕</button>
+                aria-label={`${f.name} દૂર કરો`} onClick={() => onChange(files.filter((_, j) => j !== i))}><Icon name="close" /></button>
             </li>
           ))}
         </ul>

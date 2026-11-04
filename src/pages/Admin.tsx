@@ -6,6 +6,7 @@ import { LoadingBlock, Notice, Tabs, type TabItem } from '../components/ui'
 import { fetchBranchInfo, type BranchInfo } from '../features/admin/api'
 import { BranchesTab } from '../features/admin/BranchesTab'
 import { StaffTab } from '../features/admin/StaffTab'
+import { Icon } from '../components/Icon'
 
 type Tab = 'branches' | 'staff'
 
@@ -61,7 +62,7 @@ function AdminInner({ selfId }: { selfId: string }) {
         {state === 'error' && (
           <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
             <p className="font-semibold">લોડ થઈ શક્યું નથી.</p>
-            <button type="button" className="btn-primary mt-3" onClick={() => setKey((k) => k + 1)}>ફરી પ્રયાસ</button>
+            <button type="button" className="btn-primary gap-2 mt-3" onClick={() => setKey((k) => k + 1)}><Icon name="refresh" />ફરી પ્રયાસ</button>
           </div>
         )}
         {state === 'ready' && tab === 'branches' && (

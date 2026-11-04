@@ -13,6 +13,7 @@ import {
 } from './api'
 import { parseReturnQty, refundFor, remainingQty, round2 } from './calc'
 import { PrintReturn, type ReturnReceipt } from './PrintReturn'
+import { Tabs } from '../../components/ui'
 
 type Method = 'cash' | 'credit'
 
@@ -148,22 +149,18 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
           </div>
 
           <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Print">
-            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Paper size">
-              {([
-                { v: 'thermal', label: 'Receipt (80mm)' },
-                { v: 'a4', label: 'A4' },
-              ] as const).map((o) => (
-                <button key={o.v} type="button" aria-pressed={paper === o.v} onClick={() => setPaper(o.v)}
-                  className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                    paper === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-                  }`}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
+            <Tabs<Paper>
+              label="Paper size"
+              value={paper}
+              onChange={setPaper}
+              items={[
+                { value: 'thermal', label: 'Receipt (80mm)', icon: 'receipt' },
+                { value: 'a4', label: 'A4', icon: 'clipboard' },
+              ]}
+            />
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn-primary" onClick={() => window.print()}>Return પાવતી print કરો</button>
-              <button type="button" className="btn-ghost" onClick={reset}>+ બીજું return</button>
+              <button type="button" className="btn-primary gap-2" onClick={() => window.print()}><Icon name="printer" />Return પાવતી print કરો</button>
+              <button type="button" className="btn-ghost gap-2" onClick={reset}><Icon name="plus" />બીજું return</button>
             </div>
           </section>
         </div>
@@ -251,20 +248,16 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
 
           <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="font-semibold">Refund પ્રકાર</h2>
-            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Refund પ્રકાર">
-              {([
-                { v: 'cash', label: 'Cash refund' },
-                { v: 'credit', label: 'Balance માંથી ઘટાડો' },
-              ] as const).map((o) => (
-                <button key={o.v} type="button" disabled={saving || (o.v === 'credit' && !canCredit)}
-                  aria-pressed={method === o.v} onClick={() => setMethod(o.v)}
-                  className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 ${
-                    method === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-                  }`}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
+            <Tabs<Method>
+              label="Refund પ્રકાર"
+              value={method}
+              onChange={setMethod}
+              disabled={saving}
+              items={[
+                { value: 'cash', label: 'Cash refund', icon: 'banknote' },
+                { value: 'credit', label: 'Balance માંથી ઘટાડો', icon: 'wallet', disabled: !canCredit },
+              ]}
+            />
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {method === 'credit'
                 ? `Customer ના બાકી balance (${money.format(balance ?? 0)}) માંથી refund ઘટશે. કોઈ રોકડ આપવાની નથી.`
@@ -282,10 +275,11 @@ export function ReturnPanel({ branchId, branchName }: { branchId: string; branch
             {problem && <ProblemBox p={problem} />}
 
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn-primary" disabled={saving || !anyQty} onClick={() => void save()}>
+              <button type="button" className="btn-primary gap-2" disabled={saving || !anyQty} onClick={() => void save()}>
+                <Icon name="check" />
                 {saving ? 'સેવ થઈ રહ્યું છે…' : 'પરત સેવ કરો'}
               </button>
-              <button type="button" className="btn-ghost" disabled={saving} onClick={reset}>રદ કરો</button>
+              <button type="button" className="btn-ghost gap-2" disabled={saving} onClick={reset}><Icon name="close" />રદ કરો</button>
             </div>
           </section>
         </div>

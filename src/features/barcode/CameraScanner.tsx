@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Icon } from '../../components/Icon'
 
 interface DetectedBarcode {
   rawValue: string
@@ -109,7 +110,7 @@ export function CameraScanner({ onDetected, onClose, status }: Props) {
         <p className="text-center text-sm text-white">Barcode ને camera સામે રાખો.</p>
       )}
       {status && <p role="status" className="max-w-md rounded-lg bg-white/90 px-3 py-2 text-center text-sm font-semibold text-slate-900">{status}</p>}
-      <button type="button" className="btn-primary" onClick={onClose}>બંધ કરો</button>
+      <button type="button" className="btn-primary gap-2" onClick={onClose}><Icon name="close" />બંધ કરો</button>
     </div>
   )
 }

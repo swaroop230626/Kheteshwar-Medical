@@ -14,6 +14,7 @@ import { Medicines } from './pages/Medicines'
 import { Purchases } from './pages/Purchases'
 import { Register } from './pages/Register'
 import { Reports } from './pages/Reports'
+import { Icon } from './components/Icon'
 
 // Needs a session and a readable profile.
 function RequireAuth() {
@@ -27,7 +28,8 @@ function RequireAuth() {
     return (
       <MessageScreen title="Account set up નથી">
         <p>Account set up નથી, owner નો સંપર્ક કરો.</p>
-        <button type="button" className="btn-ghost" onClick={() => void signOut()}>
+        <button type="button" className="btn-ghost gap-2" onClick={() => void signOut()}>
+          <Icon name="logout" />
           લોગઆઉટ (Logout)
         </button>
       </MessageScreen>
@@ -38,10 +40,12 @@ function RequireAuth() {
       <MessageScreen title="પ્રોફાઇલ લોડ થઈ નથી">
         <p>ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો. (Could not load your profile.)</p>
         <div className="flex gap-2">
-          <button type="button" className="btn-primary" onClick={reloadProfile}>
+          <button type="button" className="btn-primary gap-2" onClick={reloadProfile}>
+            <Icon name="refresh" />
             ફરી પ્રયાસ
           </button>
-          <button type="button" className="btn-ghost" onClick={() => void signOut()}>
+          <button type="button" className="btn-ghost gap-2" onClick={() => void signOut()}>
+            <Icon name="logout" />
             લોગઆઉટ
           </button>
         </div>
@@ -66,7 +70,8 @@ function RequireBranch() {
     return (
       <MessageScreen title="શાખાઓ લોડ થઈ નથી">
         <p>Could not load branches. ફરી પ્રયાસ કરો.</p>
-        <button type="button" className="btn-primary" onClick={reload}>
+        <button type="button" className="btn-primary gap-2" onClick={reload}>
+          <Icon name="refresh" />
           ફરી પ્રયાસ
         </button>
       </MessageScreen>
@@ -76,7 +81,8 @@ function RequireBranch() {
     return (
       <MessageScreen title="કોઈ શાખા મળી નથી">
         <p>તમારા account સાથે કોઈ શાખા જોડાયેલી નથી. Owner નો સંપર્ક કરો.</p>
-        <button type="button" className="btn-ghost" onClick={() => void signOut()}>
+        <button type="button" className="btn-ghost gap-2" onClick={() => void signOut()}>
+          <Icon name="logout" />
           લોગઆઉટ (Logout)
         </button>
       </MessageScreen>

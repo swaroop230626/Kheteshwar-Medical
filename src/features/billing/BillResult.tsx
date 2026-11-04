@@ -4,6 +4,7 @@ import { formatDate } from '../medicines/stock'
 import { money } from './cart'
 import { PrintBill, useShop, type Paper } from './PrintBill'
 import { WhatsAppShare } from './WhatsAppShare'
+import { Tabs } from '../../components/ui'
 
 export interface BillSummary {
   billNo: string
@@ -66,19 +67,15 @@ export function BillResult({ bill, branchId, warning, onNew }: { bill: BillSumma
         </section>
 
         <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900" aria-label="Print">
-          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Paper size">
-            {([
-              { v: 'thermal', label: 'Receipt (80mm)' },
-              { v: 'a4', label: 'A4' },
-            ] as const).map((o) => (
-              <button key={o.v} type="button" aria-pressed={paper === o.v} onClick={() => setPaper(o.v)}
-                className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                  paper === o.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 dark:border-slate-700'
-                }`}>
-                {o.label}
-              </button>
-            ))}
-          </div>
+          <Tabs<Paper>
+            label="Paper size"
+            value={paper}
+            onChange={setPaper}
+            items={[
+              { value: 'thermal', label: 'Receipt (80mm)', icon: 'receipt' },
+              { value: 'a4', label: 'A4', icon: 'clipboard' },
+            ]}
+          />
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-primary gap-2" onClick={() => window.print()}><Icon name="printer" />Print bill</button>
             <button type="button" className="btn-ghost gap-2" onClick={onNew}><Icon name="plus" />નવું Bill</button>

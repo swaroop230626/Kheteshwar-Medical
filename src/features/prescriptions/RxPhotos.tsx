@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { PhotoPicker } from './PhotoPicker'
 import { listPrescriptions, uploadPrescriptions, type PhotoFile } from './api'
+import { Icon } from '../../components/Icon'
 
 interface Props {
   branchId: string
@@ -77,7 +78,8 @@ export function RxPhotos({ branchId, billId, canAdd, onChanged }: Props) {
         <div className="mt-2">
           <PhotoPicker files={picked} onChange={setPicked} disabled={uploading} />
           {picked.length > 0 && (
-            <button type="button" className="btn-primary mt-2" disabled={uploading} onClick={() => void upload()}>
+            <button type="button" className="btn-primary gap-2 mt-2" disabled={uploading} onClick={() => void upload()}>
+              <Icon name="plus" />
               {uploading ? 'upload થઈ રહ્યું છે…' : `${picked.length} ફોટા ઉમેરો`}
             </button>
           )}

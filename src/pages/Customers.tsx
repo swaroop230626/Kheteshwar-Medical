@@ -79,7 +79,7 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
               <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
                 <p className="font-semibold">Customers લોડ થઈ શક્યા નથી.</p>
                 <p className="text-sm">ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો.</p>
-                <button type="button" className="btn-primary mt-3" onClick={reload}>ફરી પ્રયાસ</button>
+                <button type="button" className="btn-primary gap-2 mt-3" onClick={reload}><Icon name="refresh" />ફરી પ્રયાસ</button>
               </div>
             )}
 
@@ -88,7 +88,7 @@ function CustomersInner({ branchId, branchName }: { branchId: string; branchName
             )}
 
             {state === 'ready' && customers.length > 0 && visible.length === 0 && (
-              <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button type="button" className="btn-ghost" onClick={() => { setQuery(''); setOnlyDue(false) }}>ફિલ્ટર સાફ કરો</button>} />
+              <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button type="button" className="btn-ghost gap-2" onClick={() => { setQuery(''); setOnlyDue(false) }}><Icon name="close" />ફિલ્ટર સાફ કરો</button>} />
             )}
 
             {state === 'ready' && visible.length > 0 && (

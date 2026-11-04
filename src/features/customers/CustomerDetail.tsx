@@ -134,7 +134,8 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
               </select>
             </div>
           </div>
-          <button type="button" className="btn-ghost" disabled={saving} onClick={() => setAmount(String(customer.balance))}>
+          <button type="button" className="btn-ghost gap-2" disabled={saving} onClick={() => setAmount(String(customer.balance))}>
+            <Icon name="wallet" />
             આખું બાકી ભરો ({money.format(customer.balance)})
           </button>
           <div>
@@ -149,7 +150,8 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
             </div>
           )}
 
-          <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
+          <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}>
+            <Icon name="check" />
             {saving ? 'સેવ થઈ રહ્યું છે…' : 'Payment સેવ કરો'}
           </button>
         </form>
@@ -167,7 +169,7 @@ export function CustomerDetail({ customer, canPay, onChanged, onClose }: Props) 
         {state === 'error' && (
           <div role="alert" className="mt-3 text-sm text-red-800 dark:text-red-300">
             <p>Ledger લોડ થઈ શક્યું નથી.</p>
-            <button type="button" className="btn-primary mt-2" onClick={reload}>ફરી પ્રયાસ</button>
+            <button type="button" className="btn-primary gap-2 mt-2" onClick={reload}><Icon name="refresh" />ફરી પ્રયાસ</button>
           </div>
         )}
         {state === 'ready' && entries.length === 0 && (

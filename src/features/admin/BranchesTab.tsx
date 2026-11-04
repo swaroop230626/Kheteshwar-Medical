@@ -51,7 +51,7 @@ function BranchForm({ initial, onCancel, onSaved }: { initial: BranchInfo | null
     <form onSubmit={(e) => void submit(e)} noValidate className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">{editing ? 'શાખા સુધારો' : 'નવી શાખા'}</h2>
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>રદ કરો</button>
+        <button type="button" className="btn-ghost gap-2" onClick={onCancel} disabled={saving}><Icon name="close" />રદ કરો</button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="min-w-0">
@@ -85,7 +85,8 @@ function BranchForm({ initial, onCancel, onSaved }: { initial: BranchInfo | null
       </div>
       <p className="text-sm text-slate-600 dark:text-slate-400">આ વિગતો bill ની પાવતી પર છપાય છે.</p>
       {problem && <ProblemBox p={problem} />}
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
+      <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}>
+        <Icon name="check" />
         {saving ? 'સેવ થઈ રહ્યું છે…' : editing ? 'ફેરફાર સેવ કરો' : 'શાખા સેવ કરો'}
       </button>
     </form>

@@ -1,6 +1,7 @@
 import { PhotoPicker } from '../prescriptions/PhotoPicker'
 import type { DoctorOption } from '../register/api'
 import type { DoctorMode, RxDraft } from './rx'
+import { Tabs, type TabItem } from '../../components/ui'
 
 interface Props {
   doctors: DoctorOption[]
@@ -26,17 +27,14 @@ export function RxPanel({ doctors, value, onChange, strict, files, onFiles, disa
         Cart માં Schedule {strict ? 'H1/X' : 'H'} દવા છે. Doctor અને patient ની વિગતો Schedule register માં નોંધાશે અને પછી બદલી શકાશે નહીં.
       </p>
 
-      <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label="Doctor">
-        {modes.map((m) => (
-          <button key={m.v} type="button" disabled={disabled} aria-pressed={value.doctorMode === m.v}
-            onClick={() => set({ doctorMode: m.v })}
-            className={`min-h-11 rounded-lg border px-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-              value.doctorMode === m.v ? 'border-brand bg-brand-soft text-brand-strong dark:bg-slate-800 dark:text-brand-bright' : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900'
-            }`}>
-            {m.label}
-          </button>
-        ))}
-      </div>
+      <Tabs<DoctorMode>
+        className="mt-3"
+        label="Doctor"
+        value={value.doctorMode}
+        onChange={(m) => set({ doctorMode: m })}
+        disabled={disabled}
+        items={modes.map((m): TabItem<DoctorMode> => ({ value: m.v, label: m.label, icon: m.v === 'existing' ? 'stethoscope' : 'plus' }))}
+      />
 
       {value.doctorMode === 'existing' ? (
         <div className="mt-3">

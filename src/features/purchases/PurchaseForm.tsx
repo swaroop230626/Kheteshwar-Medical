@@ -20,6 +20,7 @@ import {
   type ItemDraft,
   type ItemField,
 } from './form'
+import { Icon } from '../../components/Icon'
 
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' })
 
@@ -188,7 +189,8 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
     <form onSubmit={submit} noValidate className="space-y-5">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">નવી Purchase</h1>
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>
+        <button type="button" className="btn-ghost gap-2" onClick={onCancel} disabled={saving}>
+          <Icon name="close" />
           રદ કરો
         </button>
       </div>
@@ -231,7 +233,8 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
           નવી દવા ઉમેરો ↗
         </Link>{' '}
         (નવા tab માં ખુલશે, આ ફોર્મનો ડેટા સચવાશે.) ઉમેર્યા પછી{' '}
-        <button type="button" className="btn-ghost inline-flex" onClick={onRefreshMedicines} disabled={saving}>
+        <button type="button" className="btn-ghost gap-2 inline-flex" onClick={onRefreshMedicines} disabled={saving}>
+          <Icon name="refresh" />
           દવા યાદી તાજી કરો
         </button>
       </p>
@@ -245,7 +248,8 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="font-semibold">Item {idx + 1}</h2>
                 {draft.items.length > 1 && (
-                  <button type="button" className="btn-ghost" onClick={() => removeItem(item.key)} disabled={saving}>
+                  <button type="button" className="btn-ghost gap-2" onClick={() => removeItem(item.key)} disabled={saving}>
+                    <Icon name="trash" />
                     દૂર કરો
                   </button>
                 )}
@@ -299,8 +303,9 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
           )
         })}
 
-        <button type="button" className="btn-ghost w-full sm:w-auto" onClick={() => setDraft((d) => ({ ...d, items: [...d.items, emptyItem()] }))} disabled={saving}>
-          + Item ઉમેરો
+        <button type="button" className="btn-ghost gap-2 w-full sm:w-auto" onClick={() => setDraft((d) => ({ ...d, items: [...d.items, emptyItem()] }))} disabled={saving}>
+          <Icon name="plus" />
+          Item ઉમેરો
         </button>
       </section>
 
@@ -317,7 +322,8 @@ export function PurchaseForm({ branchId, medicines, onCancel, onSaved, onRefresh
           </p>
         )}
 
-        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
+        <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}>
+          <Icon name="check" />
           {saving ? 'સેવ થઈ રહ્યું છે…' : 'Purchase સેવ કરો'}
         </button>
       </section>

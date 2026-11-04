@@ -46,6 +46,7 @@ export interface TabItem<T extends string> {
   label: string
   icon?: IconName
   badge?: number
+  disabled?: boolean
 }
 
 export function Tabs<T extends string>({
@@ -54,12 +55,14 @@ export function Tabs<T extends string>({
   onChange,
   label,
   className = '',
+  disabled = false,
 }: {
   items: TabItem<T>[]
   value: T
   onChange: (v: T) => void
   label: string
   className?: string
+  disabled?: boolean
 }) {
   return (
     <div role="group" aria-label={label} className={`grid gap-2 ${className}`} style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
@@ -70,8 +73,9 @@ export function Tabs<T extends string>({
             key={t.value}
             type="button"
             aria-pressed={on}
+            disabled={disabled || t.disabled}
             onClick={() => onChange(t.value)}
-            className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-xl border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-xl border px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 ${
               on
                 ? 'border-brand bg-brand-soft text-brand-strong dark:bg-brand/25 dark:text-brand-bright'
                 : 'border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'

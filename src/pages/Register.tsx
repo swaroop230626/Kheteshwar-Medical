@@ -37,7 +37,7 @@ function ProblemBox({ p, onRetry }: { p: Problem; onRetry?: () => void }) {
     <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
       <p className="font-semibold">{p.message}</p>
       <p className="mt-1 break-words font-mono text-xs">Technical: {p.technical}</p>
-      {onRetry && <button type="button" className="btn-primary mt-3" onClick={onRetry}>ફરી પ્રયાસ</button>}
+      {onRetry && <button type="button" className="btn-primary gap-2 mt-3" onClick={onRetry}><Icon name="refresh" />ફરી પ્રયાસ</button>}
     </div>
   )
 }
@@ -66,8 +66,9 @@ function RegisterView({ rows, branchId, canAdd, onChanged }: { rows: RegisterRow
 
   const photoLabel = (r: RegisterRow) => (r.photos > 0 ? `ફોટા (${r.photos})` : canAdd ? 'ફોટો ઉમેરો' : 'ફોટો નથી')
   const photoButton = (r: RegisterRow) => (
-    <button type="button" className="btn-ghost print:hidden" aria-expanded={openId === r.id}
+    <button type="button" className="btn-ghost gap-2 print:hidden" aria-expanded={openId === r.id}
       onClick={() => setOpenId(openId === r.id ? null : r.id)}>
+      <Icon name="photo" />
       {photoLabel(r)}
     </button>
   )
@@ -307,7 +308,7 @@ function DoctorsTab({ canAdd }: { canAdd: boolean }) {
           </div>
           {problem && <ProblemBox p={problem} />}
           {notice && <p role="status" className="text-sm text-green-800 dark:text-green-300">{notice}</p>}
-          <button type="submit" className="btn-primary w-full" disabled={saving}>{saving ? 'સેવ થઈ રહ્યું છે…' : 'Doctor સેવ કરો'}</button>
+          <button type="submit" className="btn-primary gap-2 w-full" disabled={saving}><Icon name="check" />{saving ? 'સેવ થઈ રહ્યું છે…' : 'Doctor સેવ કરો'}</button>
         </form>
       )}
 

@@ -49,7 +49,7 @@ function Problem({ message, technical, onRetry }: { message: string; technical: 
     <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
       <p className="font-semibold">{message}</p>
       <p className="mt-1 break-words font-mono text-xs">Technical: {technical}</p>
-      <button type="button" className="btn-primary mt-3" onClick={onRetry}>ફરી પ્રયાસ</button>
+      <button type="button" className="btn-primary gap-2 mt-3" onClick={onRetry}><Icon name="refresh" />ફરી પ્રયાસ</button>
     </div>
   )
 }
@@ -438,7 +438,8 @@ function ReportsInner({ branchId, branchName, canSwitch }: { branchId: string; b
 
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="ઝડપી તારીખ">
           {quick.map((p) => (
-            <button key={p.label} type="button" className="btn-ghost" onClick={() => { setFrom(p.from); setTo(p.to) }}>
+            <button key={p.label} type="button" className="btn-ghost gap-2" onClick={() => { setFrom(p.from); setTo(p.to) }}>
+              <Icon name="calendar" />
               {p.label}
             </button>
           ))}

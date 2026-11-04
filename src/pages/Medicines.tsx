@@ -109,7 +109,7 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
       return (
         <div>
           <p className="text-slate-600 dark:text-slate-400">તમને નવી દવા ઉમેરવાની પરવાનગી નથી.</p>
-          <button type="button" className="btn-ghost mt-3" onClick={closeForm}>પાછા</button>
+          <button type="button" className="btn-ghost gap-2 mt-3" onClick={closeForm}><Icon name="arrowLeft" />પાછા</button>
         </div>
       )
     }
@@ -174,7 +174,8 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
           <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
             <p className="font-semibold">ડેટા લોડ થઈ શક્યો નથી.</p>
             <p className="text-sm">ઇન્ટરનેટ તપાસી ફરી પ્રયાસ કરો.</p>
-            <button type="button" className="btn-primary mt-3" onClick={reload}>
+            <button type="button" className="btn-primary gap-2 mt-3" onClick={reload}>
+              <Icon name="refresh" />
               ફરી પ્રયાસ
             </button>
           </div>
@@ -187,12 +188,13 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
         {state === 'ready' && rows.length > 0 && visible.length === 0 && (
           <EmptyState icon="search" title="શોધ મુજબ કંઈ મળ્યું નથી." action={<button
               type="button"
-              className="btn-ghost"
+              className="btn-ghost gap-2"
               onClick={() => {
                 setQuery('')
                 setFilter('all')
               }}
             >
+              <Icon name="close" />
               ફિલ્ટર સાફ કરો
             </button>} />
         )}
@@ -235,7 +237,8 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                     </div>
                   </dl>
                   {canAdd && (
-                    <button type="button" className="btn-ghost mt-3 w-full" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                    <button type="button" className="btn-ghost gap-2 mt-3 w-full" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                      <Icon name="edit" />
                       {editBusy === r.medicineId ? 'લોડ થઈ રહ્યું છે…' : 'સુધારો'}
                     </button>
                   )}
@@ -271,7 +274,8 @@ function MedicinesInner({ branchId, branchName }: { branchId: string; branchName
                       <td className="px-3 py-3"><StatusBadges statuses={r.statuses} /></td>
                       <td className="px-3 py-1">
                         {canAdd && (
-                          <button type="button" className="btn-ghost" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                          <button type="button" className="btn-ghost gap-2" disabled={editBusy !== null} onClick={() => void openEdit(r.medicineId)}>
+                            <Icon name="edit" />
                             {editBusy === r.medicineId ? '…' : 'સુધારો'}
                           </button>
                         )}

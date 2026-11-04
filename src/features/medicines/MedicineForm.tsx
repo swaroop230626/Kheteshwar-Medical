@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { fetchMedicineBarcodes, linkBarcode, type BarcodeInfo } from '../barcode/api'
 import { BarcodeSection, type PendingBarcode } from '../barcode/BarcodeSection'
 import { createMedicine, updateMedicine, type MedicineDraft } from './create'
+import { Icon } from '../../components/Icon'
 
 const GST = ['0', '5', '12', '18']
 const SCHEDULES = ['OTC', 'H', 'H1', 'X']
@@ -143,7 +144,7 @@ export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) 
     <form onSubmit={submit} noValidate className="space-y-5">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">{editing ? 'દવા સુધારો' : 'નવી દવા'}</h1>
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>રદ કરો</button>
+        <button type="button" className="btn-ghost gap-2" onClick={onCancel} disabled={saving}><Icon name="close" />રદ કરો</button>
       </div>
 
       <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-900">
@@ -206,7 +207,8 @@ export function MedicineForm({ medicineId, initial, onCancel, onSaved }: Props) 
         </div>
       )}
 
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
+      <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}>
+        <Icon name="check" />
         {saving ? 'સેવ થઈ રહ્યું છે…' : editing ? 'ફેરફાર સેવ કરો' : 'દવા સેવ કરો'}
       </button>
     </form>

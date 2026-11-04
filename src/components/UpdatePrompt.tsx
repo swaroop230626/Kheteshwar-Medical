@@ -1,4 +1,5 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { Icon } from './Icon'
 
 // Shows "new version available" when a new build has been deployed.
 export function UpdatePrompt() {
@@ -24,11 +25,12 @@ export function UpdatePrompt() {
       <p className="font-semibold">નવું version ઉપલબ્ધ છે.</p>
       <p className="text-sm text-slate-600 dark:text-slate-400">Reload કરો. ચાલુ bill હોય તો પહેલાં તે સેવ કરી લો.</p>
       <div className="mt-3 flex gap-2">
-        <button type="button" className="btn-primary" onClick={() => void updateServiceWorker(true)}>
+        <button type="button" className="btn-primary gap-2" onClick={() => void updateServiceWorker(true)}>
+          <Icon name="refresh" />
           Reload કરો
         </button>
-        <button type="button" className="btn-ghost" onClick={() => setNeedRefresh(false)}>
-          પછી
+        <button type="button" className="btn-ghost gap-2" onClick={() => setNeedRefresh(false)}>
+          <Icon name="close" />પછી
         </button>
       </div>
     </div>

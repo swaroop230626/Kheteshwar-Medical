@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { addCustomer } from './api'
+import { Icon } from '../../components/Icon'
 
 interface Props {
   branchId: string
@@ -40,7 +41,7 @@ export function CustomerForm({ branchId, onCancel, onSaved }: Props) {
     <form onSubmit={submit} noValidate className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">નવો customer</h2>
-        <button type="button" className="btn-ghost" onClick={onCancel} disabled={saving}>રદ કરો</button>
+        <button type="button" className="btn-ghost gap-2" onClick={onCancel} disabled={saving}><Icon name="close" />રદ કરો</button>
       </div>
 
       <div>
@@ -70,7 +71,8 @@ export function CustomerForm({ branchId, onCancel, onSaved }: Props) {
         </div>
       )}
 
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={saving}>
+      <button type="submit" className="btn-primary gap-2 w-full sm:w-auto" disabled={saving}>
+        <Icon name="check" />
         {saving ? 'સેવ થઈ રહ્યું છે…' : 'Customer સેવ કરો'}
       </button>
     </form>
